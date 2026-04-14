@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Profile {
+export interface Profile {
   id: string;
   name: string;
   country: string;
@@ -14,7 +14,9 @@ interface Profile {
   weekly_xp: number;
   level: number;
   rank: string;
+  role: string;
   onboarding_completed: boolean;
+  avatar_url: string | null;
 }
 
 interface AuthContextType {
