@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      challenges: {
+        Row: {
+          challenged_id: string
+          challenged_xp: number | null
+          challenger_id: string
+          challenger_xp: number | null
+          created_at: string | null
+          duration_minutes: number
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+          subject: string
+          winner_id: string | null
+        }
+        Insert: {
+          challenged_id: string
+          challenged_xp?: number | null
+          challenger_id: string
+          challenger_xp?: number | null
+          created_at?: string | null
+          duration_minutes?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          subject: string
+          winner_id?: string | null
+        }
+        Update: {
+          challenged_id?: string
+          challenged_xp?: number | null
+          challenger_id?: string
+          challenger_xp?: number | null
+          created_at?: string | null
+          duration_minutes?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          subject?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       daily_goals: {
         Row: {
           created_at: string | null
@@ -55,6 +100,33 @@ export type Database = {
           },
         ]
       }
+      direct_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          receiver_id: string
+          sender_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id: string
+          sender_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+          text?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -67,6 +139,7 @@ export type Database = {
           name: string
           onboarding_completed: boolean | null
           rank: string | null
+          role: string | null
           subjects: string[] | null
           total_hours: number | null
           total_xp: number | null
@@ -84,6 +157,7 @@ export type Database = {
           name?: string
           onboarding_completed?: boolean | null
           rank?: string | null
+          role?: string | null
           subjects?: string[] | null
           total_hours?: number | null
           total_xp?: number | null
@@ -101,6 +175,7 @@ export type Database = {
           name?: string
           onboarding_completed?: boolean | null
           rank?: string | null
+          role?: string | null
           subjects?: string[] | null
           total_hours?: number | null
           total_xp?: number | null
@@ -187,6 +262,75 @@ export type Database = {
           },
         ]
       }
+      student_grades: {
+        Row: {
+          academic_year: string | null
+          created_at: string | null
+          grade_value: number | null
+          id: string
+          max_grade: number | null
+          notes: string | null
+          semester: string | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          academic_year?: string | null
+          created_at?: string | null
+          grade_value?: number | null
+          id?: string
+          max_grade?: number | null
+          notes?: string | null
+          semester?: string | null
+          subject: string
+          user_id: string
+        }
+        Update: {
+          academic_year?: string | null
+          created_at?: string | null
+          grade_value?: number | null
+          id?: string
+          max_grade?: number | null
+          notes?: string | null
+          semester?: string | null
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          plan_content: string
+          progress: number | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_content: string
+          progress?: number | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_content?: string
+          progress?: number | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_rooms: {
         Row: {
           created_at: string | null
@@ -265,6 +409,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teacher_profiles: {
+        Row: {
+          average_rating: number | null
+          bio: string | null
+          created_at: string | null
+          id: string
+          instagram_url: string | null
+          specialization: string | null
+          telegram_url: string | null
+          total_ratings: number | null
+          twitter_url: string | null
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          average_rating?: number | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          instagram_url?: string | null
+          specialization?: string | null
+          telegram_url?: string | null
+          total_ratings?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          average_rating?: number | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          instagram_url?: string | null
+          specialization?: string | null
+          telegram_url?: string | null
+          total_ratings?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      teacher_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
