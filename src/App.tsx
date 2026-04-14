@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-context";
 import { Layout } from "@/components/Layout";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -14,6 +15,12 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import StartStudy from "./pages/StartStudy";
 import StudySession from "./pages/StudySession";
+import Challenges from "./pages/Challenges";
+import Grades from "./pages/Grades";
+import Messages from "./pages/Messages";
+import Settings from "./pages/Settings";
+import UserProfile from "./pages/UserProfile";
+import TeachersList from "./pages/TeachersList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +32,7 @@ function AppRoutes() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-2xl gradient-primary mx-auto mb-3 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl gradient-primary mx-auto mb-3 animate-pulse glow-primary" />
           <p className="text-muted-foreground text-sm">جاري التحميل...</p>
         </div>
       </div>
@@ -45,6 +52,12 @@ function AppRoutes() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/start-study" element={<StartStudy />} />
         <Route path="/study-session/:id" element={<StudySession />} />
+        <Route path="/challenges" element={<Challenges />} />
+        <Route path="/grades" element={<Grades />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/user/:id" element={<UserProfile />} />
+        <Route path="/teachers" element={<TeachersList />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -53,15 +66,17 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
