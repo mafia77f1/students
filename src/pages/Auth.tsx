@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BookOpen, Mail, Lock, User } from "lucide-react";
+import { GraduationCap, Mail, Lock, User } from "lucide-react";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -36,12 +36,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md shadow-xl border-primary/20">
+      <Card className="w-full max-w-md shadow-xl border-primary/20 glow-primary">
         <CardHeader className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center">
-            <BookOpen className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
+            <GraduationCap className="h-8 w-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">ستدي زون</CardTitle>
+          <CardTitle className="text-2xl font-bold gradient-text">طلاب</CardTitle>
           <p className="text-muted-foreground text-sm">
             {isLogin ? "سجل دخولك لمتابعة الدراسة" : "أنشئ حسابك وابدأ رحلة التعلم"}
           </p>
@@ -53,14 +53,7 @@ export default function Auth() {
                 <Label htmlFor="name">الاسم</Label>
                 <div className="relative">
                   <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    placeholder="اسمك الكامل"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pr-10"
-                    required
-                  />
+                  <Input id="name" placeholder="اسمك الكامل" value={name} onChange={(e) => setName(e.target.value)} className="pr-10" required />
                 </div>
               </div>
             )}
@@ -68,31 +61,14 @@ export default function Auth() {
               <Label htmlFor="email">البريد الإلكتروني</Label>
               <div className="relative">
                 <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@mail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pr-10"
-                  required
-                />
+                <Input id="email" type="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10" required />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">كلمة المرور</Label>
               <div className="relative">
                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
-                  required
-                  minLength={6}
-                />
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" required minLength={6} />
               </div>
             </div>
             <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
@@ -100,10 +76,7 @@ export default function Auth() {
             </Button>
           </form>
           <div className="mt-4 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-primary hover:underline"
-            >
+            <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-primary hover:underline">
               {isLogin ? "ليس لديك حساب؟ أنشئ واحداً" : "لديك حساب؟ سجل الدخول"}
             </button>
           </div>
