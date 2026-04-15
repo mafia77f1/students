@@ -21,12 +21,15 @@ export type Database = {
           challenger_id: string
           challenger_xp: number | null
           created_at: string | null
+          duration_days: number | null
           duration_minutes: number
+          end_date: string | null
           ended_at: string | null
           id: string
           started_at: string | null
           status: string
           subject: string
+          title: string | null
           winner_id: string | null
         }
         Insert: {
@@ -35,12 +38,15 @@ export type Database = {
           challenger_id: string
           challenger_xp?: number | null
           created_at?: string | null
+          duration_days?: number | null
           duration_minutes?: number
+          end_date?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string | null
           status?: string
           subject: string
+          title?: string | null
           winner_id?: string | null
         }
         Update: {
@@ -49,12 +55,15 @@ export type Database = {
           challenger_id?: string
           challenger_xp?: number | null
           created_at?: string | null
+          duration_days?: number | null
           duration_minutes?: number
+          end_date?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string | null
           status?: string
           subject?: string
+          title?: string | null
           winner_id?: string | null
         }
         Relationships: []
@@ -138,6 +147,7 @@ export type Database = {
           level: number | null
           name: string
           onboarding_completed: boolean | null
+          onboarding_tour_completed: boolean | null
           rank: string | null
           role: string | null
           subjects: string[] | null
@@ -156,6 +166,7 @@ export type Database = {
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
+          onboarding_tour_completed?: boolean | null
           rank?: string | null
           role?: string | null
           subjects?: string[] | null
@@ -174,6 +185,7 @@ export type Database = {
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
+          onboarding_tour_completed?: boolean | null
           rank?: string | null
           role?: string | null
           subjects?: string[] | null
