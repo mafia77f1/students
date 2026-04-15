@@ -8,6 +8,8 @@ export function Layout() {
   const navigate = useNavigate();
   const { profile } = useAuth();
 
+  const isTeacher = profile?.role === "teacher";
+  
   const navItems = [
     { label: "الرئيسية", path: "/", icon: Home },
     { label: "الغرف", path: "/lobby", icon: Users },
