@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,16 +8,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { BookOpen, Clock, Target, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Target, Plus, Trash2, Rocket } from "lucide-react";
+import { motion } from "framer-motion";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
+
 const durations = [
-  { label: "15 دقيقة", value: 15 },
-  { label: "25 دقيقة", value: 25 },
-  { label: "45 دقيقة", value: 45 },
-  { label: "60 دقيقة", value: 60 },
-  { label: "90 دقيقة", value: 90 },
-  { label: "120 دقيقة", value: 120 },
+  { label: "15 د", value: 15, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  { label: "25 د", value: 25, color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+  { label: "45 د", value: 45, color: "bg-violet-500/10 text-violet-500 border-violet-500/20" },
+  { label: "60 د", value: 60, color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  { label: "90 د", value: 90, color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
+  { label: "120 د", value: 120, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20" },
 ];
 
 interface Goal {
@@ -30,7 +32,6 @@ export default function StartStudy() {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
   const [duration, setDuration] = useState<number>(25);
-  const [chapters, setChapters] = useState("");
   const [goals, setGoals] = useState<Goal[]>([{ id: 1, description: "" }]);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +47,6 @@ export default function StartStudy() {
     }
     setLoading(true);
 
-    // Create daily goals
     const validGoals = goals.filter((g) => g.description.trim());
     if (validGoals.length > 0) {
       await supabase.from("daily_goals").insert(
@@ -54,19 +54,16 @@ export default function StartStudy() {
           user_id: profile.id,
           subject,
           description: g.description,
-          target_chapters: parseInt(chapters) || 1,
         }))
       );
     }
 
-    // Create study session
     const { data: session } = await supabase
       .from("study_sessions")
       .insert({
         user_id: profile.id,
         subject,
         duration_minutes: duration,
-        chapters: chapters || null,
       })
       .select()
       .single();
@@ -79,91 +76,93 @@ export default function StartStudy() {
   };
 
   return (
-    <div className="space-y-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold">ابدأ جلسة دراسة</h1>
+    <div className="space-y-5 max-w-lg mx-auto">
+      <h1 className="text-xl font-bold text-center">🚀 ابدأ جلسة دراسة</h1>
 
-      <Card>
-        <CardContent className="pt-6 space-y-5">
-          {/* Subject */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary" />
-              المادة
+      {/* Subject Selection */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <Card>
+          <CardContent className="pt-5">
+            <Label className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-4 w-4 text-primary" /> اختر المادة
             </Label>
             <Select value={subject} onValueChange={setSubject}>
-              <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="اختر المادة..." /></SelectTrigger>
               <SelectContent>
                 {subjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-          {/* Duration */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-accent" />
-              مدة الدراسة
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {durations.map((d) => (
-                <Button
-                  key={d.value}
-                  variant={duration === d.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setDuration(d.value)}
-                  className={duration === d.value ? "gradient-primary text-primary-foreground" : ""}
-                >
-                  {d.label}
-                </Button>
-              ))}
-            </div>
-          </div>
+      {/* Duration Cards */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+        <Label className="text-sm font-medium mb-2 block">⏱ مدة الدراسة</Label>
+        <div className="grid grid-cols-3 gap-2">
+          {durations.map((d) => (
+            <Card
+              key={d.value}
+              onClick={() => setDuration(d.value)}
+              className={`cursor-pointer transition-all text-center ${
+                duration === d.value
+                  ? "ring-2 ring-primary shadow-lg scale-[1.03]"
+                  : "hover:shadow-md"
+              }`}
+            >
+              <CardContent className="py-4 px-2">
+                <div className={`w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center text-lg font-bold ${d.color}`}>
+                  {d.value}
+                </div>
+                <p className="text-xs font-medium">{d.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </motion.div>
 
-          {/* Chapters */}
-          <div className="space-y-2">
-            <Label>الفصول / الأقسام</Label>
-            <Input
-              placeholder="مثال: الفصل 3 و 4"
-              value={chapters}
-              onChange={(e) => setChapters(e.target.value)}
-            />
-          </div>
-
-          {/* Goals */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-secondary" />
-              أهداف الجلسة
-            </Label>
-            {goals.map((goal, i) => (
-              <div key={goal.id} className="flex gap-2">
+      {/* Goals as Cards */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Label className="flex items-center gap-2 mb-3">
+          <Target className="h-4 w-4 text-secondary" /> أهداف الجلسة
+        </Label>
+        <div className="space-y-2">
+          {goals.map((goal, i) => (
+            <Card key={goal.id} className="bg-muted/30 border-dashed">
+              <CardContent className="py-3 px-4 flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                  {i + 1}
+                </div>
                 <Input
-                  placeholder={`الهدف ${i + 1}...`}
+                  placeholder={`هدف ${i + 1}...`}
                   value={goal.description}
                   onChange={(e) => updateGoal(goal.id, e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 p-0 h-auto text-sm"
                 />
                 {goals.length > 1 && (
-                  <Button size="icon" variant="ghost" onClick={() => removeGoal(goal.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <button onClick={() => removeGoal(goal.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 )}
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={addGoal} className="gap-2 w-full">
-              <Plus className="h-4 w-4" />
-              إضافة هدف
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          ))}
+          <Button variant="ghost" size="sm" onClick={addGoal} className="gap-2 w-full text-muted-foreground hover:text-primary">
+            <Plus className="h-4 w-4" /> إضافة هدف
+          </Button>
+        </div>
+      </motion.div>
 
-      <Button
-        className="w-full gradient-primary text-primary-foreground text-lg py-6"
-        onClick={handleStart}
-        disabled={!subject || loading}
-      >
-        {loading ? "جاري التحضير..." : "ابدأ الدراسة 🚀"}
-      </Button>
+      {/* Start Button */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <Button
+          className="w-full gradient-primary text-primary-foreground text-base py-6 gap-2 rounded-xl"
+          onClick={handleStart}
+          disabled={!subject || loading}
+        >
+          {loading ? "جاري التحضير..." : <><Rocket className="h-5 w-5" /> ابدأ الآن</>}
+        </Button>
+      </motion.div>
     </div>
   );
 }
