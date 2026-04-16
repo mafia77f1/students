@@ -51,6 +51,7 @@ export default function Grades() {
   const [semester, setSemester] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [notes, setNotes] = useState("");
+  const [examType, setExamType] = useState("regular");
   const [generatingPlan, setGeneratingPlan] = useState<string | null>(null);
   const [tab, setTab] = useState<"grades" | "plans">("grades");
 
@@ -72,13 +73,13 @@ export default function Grades() {
     if (!profile || !subject || !gradeValue) return;
     const { error } = await supabase.from("student_grades").insert({
       user_id: profile.id, subject, grade_value: parseFloat(gradeValue), max_grade: parseFloat(maxGrade),
-      semester, academic_year: academicYear, notes,
-    });
+      semester, academic_year: academicYear, notes, exam_type: examType,
+    } as any);
     if (error) toast.error("حصل خطأ");
     else {
       toast.success("تم إضافة الدرجة!");
       setDialogOpen(false);
-      setSubject(""); setGradeValue(""); setNotes("");
+      setSubject(""); setGradeValue(""); setNotes(""); setExamType("regular");
       fetchGrades();
     }
   };
