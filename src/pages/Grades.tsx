@@ -126,6 +126,13 @@ export default function Grades() {
             <DialogHeader><DialogTitle>إضافة درجة مادة</DialogTitle></DialogHeader>
             <div className="space-y-3 mt-2">
               <div className="space-y-2">
+                <Label>نوع الاختبار</Label>
+                <Select value={examType} onValueChange={setExamType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{examTypes.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>المادة</Label>
                 <Select value={subject} onValueChange={setSubject}>
                   <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
@@ -188,9 +195,13 @@ export default function Grades() {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <div>
+                      <div className="space-y-1">
                         <p className="font-bold">{g.subject}</p>
                         <p className="text-xs text-muted-foreground">{g.semester} • {g.academic_year}</p>
+                        {(() => {
+                          const et = examTypes.find(e => e.value === (g.exam_type || "regular"));
+                          return et ? <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${et.color}`}>{et.label}</span> : null;
+                        })()}
                       </div>
                       <div className="text-left">
                         <p className="text-2xl font-bold text-primary">{g.grade_value}<span className="text-sm text-muted-foreground">/{g.max_grade}</span></p>
