@@ -14,6 +14,12 @@ import { motion } from "framer-motion";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
+const examTypes = [
+  { value: "regular", label: "اختبار عادي", color: "bg-primary/10 text-primary" },
+  { value: "ministerial", label: "اختبار الدخول الوزاري", color: "bg-secondary/10 text-secondary" },
+  { value: "exemption", label: "اختبار الإعفاء", color: "bg-accent/10 text-accent-foreground" },
+];
+
 interface Grade {
   id: string;
   subject: string;
@@ -22,6 +28,7 @@ interface Grade {
   semester: string;
   academic_year: string;
   notes: string;
+  exam_type?: string;
 }
 
 interface StudyPlan {
