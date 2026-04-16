@@ -278,6 +278,7 @@ export type Database = {
         Row: {
           academic_year: string | null
           created_at: string | null
+          exam_type: string | null
           grade_value: number | null
           id: string
           max_grade: number | null
@@ -289,6 +290,7 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           created_at?: string | null
+          exam_type?: string | null
           grade_value?: number | null
           id?: string
           max_grade?: number | null
@@ -300,6 +302,7 @@ export type Database = {
         Update: {
           academic_year?: string | null
           created_at?: string | null
+          exam_type?: string | null
           grade_value?: number | null
           id?: string
           max_grade?: number | null
