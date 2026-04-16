@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { Search, Plus, Users, BookOpen } from "lucide-react";
+import { Search, Plus, Users, BookOpen, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -80,17 +80,20 @@ export default function Lobby() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">غرف الدراسة</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{rooms.length} غرفة نشطة</p>
+          <h1 className="text-2xl font-black gradient-text">غرف الدراسة</h1>
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {rooms.length} غرفة نشطة
+          </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gradient-primary text-primary-foreground gap-1.5">
+            <Button size="sm" className="gradient-primary text-white border-0 gap-1.5 rounded-xl glow-primary h-10 px-4">
               <Plus className="h-4 w-4" /> غرفة جديدة
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>إنشاء غرفة دراسة</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="gradient-text text-xl">إنشاء غرفة دراسة</DialogTitle></DialogHeader>
             <div className="space-y-3 mt-2">
               <div className="space-y-1.5">
                 <Label className="text-xs">اسم الغرفة</Label>
@@ -103,7 +106,7 @@ export default function Lobby() {
                   <SelectContent>{subjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <Button className="w-full gradient-primary text-primary-foreground" onClick={createRoom} disabled={!newRoomName || !newRoomSubject}>
+              <Button className="w-full gradient-primary text-white border-0 rounded-xl h-11" onClick={createRoom} disabled={!newRoomName || !newRoomSubject}>
                 إنشاء
               </Button>
             </div>
@@ -114,14 +117,18 @@ export default function Lobby() {
       {/* Search */}
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="ابحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-10 h-10" />
+        <Input placeholder="ابحث عن غرفة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-10 h-11 rounded-xl bg-card border-border/60" />
       </div>
 
       {/* Filter chips */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
         <button
           onClick={() => setFilter("all")}
-          className={`shrink-0 text-xs px-3 py-1.5 rounded-full transition-colors ${filter === "all" ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+          className={`shrink-0 text-xs px-4 py-2 rounded-full font-bold transition-all ${
+            filter === "all"
+              ? "gradient-primary text-white glow-primary"
+              : "bg-card text-muted-foreground border border-border/60 hover:border-primary/40"
+          }`}
         >
           الكل
         </button>
@@ -129,7 +136,11 @@ export default function Lobby() {
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`shrink-0 text-xs px-3 py-1.5 rounded-full transition-colors ${filter === s ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+            className={`shrink-0 text-xs px-4 py-2 rounded-full font-bold transition-all ${
+              filter === s
+                ? "gradient-primary text-white glow-primary"
+                : "bg-card text-muted-foreground border border-border/60 hover:border-primary/40"
+            }`}
           >
             {s}
           </button>
@@ -138,31 +149,36 @@ export default function Lobby() {
 
       {/* Rooms list */}
       {filtered.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-10 text-center text-muted-foreground">
-            <Users className="h-10 w-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm font-medium">لا توجد غرف</p>
-            <p className="text-xs mt-1">كن أول من ينشئ غرفة!</p>
+        <Card className="border-dashed border-2">
+          <CardContent className="py-12 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <p className="text-sm font-bold">لا توجد غرف بعد</p>
+            <p className="text-xs text-muted-foreground mt-1">كن أول من ينشئ غرفة دراسة!</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
           {filtered.map((room, i) => (
             <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              <Card className="cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate(`/room/${room.id}`)}>
+              <Card
+                className="cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all overflow-hidden group"
+                onClick={() => navigate(`/room/${room.id}`)}
+              >
                 <CardContent className="p-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                      <BookOpen className="h-5 w-5 text-primary-foreground" />
+                    <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shrink-0 glow-primary group-hover:scale-110 transition-transform">
+                      <BookOpen className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <h3 className="font-bold text-sm truncate">{room.name}</h3>
-                        <Badge variant="secondary" className="text-[10px] shrink-0">{room.subject}</Badge>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h3 className="font-black text-sm truncate">{room.name}</h3>
+                        <Badge variant="secondary" className="text-[10px] shrink-0 font-bold">{room.subject}</Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="truncate">{room.profiles?.name || "مجهول"}</span>
-                        <span className="flex items-center gap-1 shrink-0">
+                        <span className="truncate">👤 {room.profiles?.name || "مجهول"}</span>
+                        <span className="flex items-center gap-1 shrink-0 font-bold text-primary">
                           <Users className="h-3 w-3" />
                           {room.participant_count}/{room.max_participants}
                         </span>
