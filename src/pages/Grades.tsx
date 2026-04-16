@@ -14,6 +14,12 @@ import { motion } from "framer-motion";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
+const examTypes = [
+  { value: "regular", label: "اختبار عادي", color: "bg-primary/10 text-primary" },
+  { value: "ministerial", label: "اختبار الدخول الوزاري", color: "bg-secondary/10 text-secondary" },
+  { value: "exemption", label: "اختبار الإعفاء", color: "bg-accent/10 text-accent-foreground" },
+];
+
 interface Grade {
   id: string;
   subject: string;
@@ -22,6 +28,7 @@ interface Grade {
   semester: string;
   academic_year: string;
   notes: string;
+  exam_type?: string;
 }
 
 interface StudyPlan {
@@ -44,6 +51,7 @@ export default function Grades() {
   const [semester, setSemester] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [notes, setNotes] = useState("");
+  const [examType, setExamType] = useState("regular");
   const [generatingPlan, setGeneratingPlan] = useState<string | null>(null);
   const [tab, setTab] = useState<"grades" | "plans">("grades");
 
@@ -65,13 +73,13 @@ export default function Grades() {
     if (!profile || !subject || !gradeValue) return;
     const { error } = await supabase.from("student_grades").insert({
       user_id: profile.id, subject, grade_value: parseFloat(gradeValue), max_grade: parseFloat(maxGrade),
-      semester, academic_year: academicYear, notes,
-    });
+      semester, academic_year: academicYear, notes, exam_type: examType,
+    } as any);
     if (error) toast.error("حصل خطأ");
     else {
       toast.success("تم إضافة الدرجة!");
       setDialogOpen(false);
-      setSubject(""); setGradeValue(""); setNotes("");
+      setSubject(""); setGradeValue(""); setNotes(""); setExamType("regular");
       fetchGrades();
     }
   };
@@ -117,6 +125,13 @@ export default function Grades() {
           <DialogContent>
             <DialogHeader><DialogTitle>إضافة درجة مادة</DialogTitle></DialogHeader>
             <div className="space-y-3 mt-2">
+              <div className="space-y-2">
+                <Label>نوع الاختبار</Label>
+                <Select value={examType} onValueChange={setExamType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{examTypes.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>المادة</Label>
                 <Select value={subject} onValueChange={setSubject}>
@@ -180,9 +195,13 @@ export default function Grades() {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <div>
+                      <div className="space-y-1">
                         <p className="font-bold">{g.subject}</p>
                         <p className="text-xs text-muted-foreground">{g.semester} • {g.academic_year}</p>
+                        {(() => {
+                          const et = examTypes.find(e => e.value === (g.exam_type || "regular"));
+                          return et ? <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${et.color}`}>{et.label}</span> : null;
+                        })()}
                       </div>
                       <div className="text-left">
                         <p className="text-2xl font-bold text-primary">{g.grade_value}<span className="text-sm text-muted-foreground">/{g.max_grade}</span></p>

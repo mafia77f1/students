@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Globe, Instagram, Youtube, Link as LinkIcon, Save } from "lucide-react";
+import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Instagram, Youtube, Link as LinkIcon, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { AvatarUpload } from "@/components/AvatarUpload";
 
 const rankConfig: Record<string, { label: string; icon: string }> = {
   bronze: { label: "برونزي", icon: "🥉" }, silver: { label: "فضي", icon: "🥈" }, gold: { label: "ذهبي", icon: "🥇" },
@@ -84,9 +85,9 @@ export default function Profile() {
       {/* Header Card */}
       <Card className="overflow-hidden">
         <div className="h-16 gradient-primary" />
-        <CardContent className="-mt-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-card border-4 border-card mx-auto flex items-center justify-center text-xl font-bold gradient-primary text-primary-foreground glow-primary">
-            {profile.name?.[0] || "؟"}
+        <CardContent className="-mt-10 text-center">
+          <div className="flex justify-center">
+            <AvatarUpload size="lg" />
           </div>
           <h1 className="text-lg font-bold mt-2">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
           <p className="text-sm font-medium mt-0.5">{rank.icon} {rank.label}</p>
