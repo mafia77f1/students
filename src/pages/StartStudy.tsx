@@ -77,7 +77,13 @@ export default function StartStudy() {
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-center">🚀 ابدأ جلسة دراسة</h1>
+      <div className="text-center space-y-2">
+        <div className="inline-flex w-14 h-14 rounded-2xl gradient-primary items-center justify-center glow-primary animate-pulse-glow">
+          <Rocket className="h-7 w-7 text-white" />
+        </div>
+        <h1 className="text-2xl font-black gradient-text">ابدأ جلسة دراسة</h1>
+        <p className="text-xs text-muted-foreground">اختر المادة، الوقت، وحدد أهدافك</p>
+      </div>
 
       {/* Subject Selection */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -156,11 +162,11 @@ export default function StartStudy() {
       {/* Start Button */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Button
-          className="w-full gradient-primary text-primary-foreground text-base py-6 gap-2 rounded-xl"
+          className="w-full gradient-primary text-white border-0 text-base py-7 gap-2 rounded-2xl glow-primary font-black"
           onClick={handleStart}
           disabled={!subject || loading}
         >
-          {loading ? "جاري التحضير..." : <><Rocket className="h-5 w-5" /> ابدأ الآن</>}
+          {loading ? "جاري التحضير..." : <><Rocket className="h-5 w-5" /> انطلق 🚀</>}
         </Button>
       </motion.div>
     </div>
