@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -8,6 +9,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { Layout } from "@/components/Layout";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import Splash from "./pages/Splash";
 import Index from "./pages/Index";
 import Lobby from "./pages/Lobby";
 import StudyRoom from "./pages/StudyRoom";
@@ -27,6 +29,7 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { session, profile, loading } = useAuth();
+  const [splashSeen, setSplashSeen] = useState(() => localStorage.getItem("splash_seen") === "1");
 
   if (loading) {
     return (
@@ -39,6 +42,7 @@ function AppRoutes() {
     );
   }
 
+  if (!splashSeen) return <Splash onFinish={() => setSplashSeen(true)} />;
   if (!session) return <Auth />;
   if (profile && !profile.onboarding_completed) return <Onboarding />;
 
