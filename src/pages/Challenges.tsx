@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Loader2, Clock, Target } from "lucide-react";
+import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -85,26 +85,18 @@ export default function Challenges() {
 
   const createChallenge = async () => {
     if (!profile || !selectedUser || !selectedSubject || !title.trim()) return;
-    
     let days = durationDays;
     let end: string | null = null;
-    
-    if (durationType === "custom" && customDays) {
-      days = parseInt(customDays);
-    } else if (durationType === "date" && endDate) {
+    if (durationType === "custom" && customDays) days = parseInt(customDays);
+    else if (durationType === "date" && endDate) {
       const diff = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       days = Math.max(1, diff);
       end = endDate;
     }
 
     const { error } = await supabase.from("challenges").insert({
-      challenger_id: profile.id,
-      challenged_id: selectedUser,
-      subject: selectedSubject,
-      duration_minutes: 25,
-      duration_days: days,
-      title: title.trim(),
-      end_date: end,
+      challenger_id: profile.id, challenged_id: selectedUser, subject: selectedSubject,
+      duration_minutes: 25, duration_days: days, title: title.trim(), end_date: end,
     });
     if (error) toast.error("حصل خطأ");
     else {
@@ -132,23 +124,12 @@ export default function Challenges() {
     return `${c.duration_minutes} دقيقة`;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending": return "bg-amber-500/10 text-amber-600 border-amber-500/20";
-      case "active": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "completed": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-      case "declined": return "bg-muted text-muted-foreground";
-      default: return "";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending": return "في الانتظار";
-      case "active": return "جاري";
-      case "completed": return "منتهي";
-      case "declined": return "مرفوض";
-      default: return "";
+  const statusStyle = (s: string) => {
+    switch (s) {
+      case "pending": return { bar: "bg-amber-400", badge: "bg-amber-500/15 text-amber-600 border-amber-500/30", label: "في الانتظار" };
+      case "active": return { bar: "gradient-primary", badge: "bg-primary/15 text-primary border-primary/30", label: "جاري" };
+      case "completed": return { bar: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30", label: "منتهي" };
+      default: return { bar: "bg-muted", badge: "bg-muted text-muted-foreground", label: "مرفوض" };
     }
   };
 
@@ -156,145 +137,161 @@ export default function Challenges() {
   const activeChallenges = challenges.filter(c => c.status === "active");
   const pastChallenges = challenges.filter(c => c.status === "completed" || c.status === "declined");
 
-  const ChallengeCard = ({ c, showActions }: { c: Challenge; showActions?: boolean }) => (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className={`overflow-hidden ${c.status === "active" ? "ring-1 ring-primary/30" : ""}`}>
-        <div className={`h-1.5 ${c.status === "active" ? "bg-primary" : c.status === "pending" ? "bg-amber-500" : "bg-muted"}`} />
-        <CardContent className="pt-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <h3 className="font-bold text-sm">{c.title || c.subject}</h3>
-              <p className="text-xs text-muted-foreground">{c.subject}</p>
+  const ChallengeCard = ({ c, showActions }: { c: Challenge; showActions?: boolean }) => {
+    const st = statusStyle(c.status);
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <Card className={`glass border-0 overflow-hidden card-hover ${c.status === "active" ? "glow-soft" : ""}`}>
+          <div className={`h-1.5 ${st.bar}`} />
+          <CardContent className="pt-4 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1 min-w-0 flex-1">
+                <h3 className="font-black text-sm truncate">{c.title || c.subject}</h3>
+                <p className="text-[11px] text-muted-foreground">{c.subject}</p>
+              </div>
+              <Badge variant="outline" className={`text-[10px] shrink-0 ${st.badge}`}>{st.label}</Badge>
             </div>
-            <Badge variant="outline" className={`text-[10px] ${getStatusColor(c.status)}`}>
-              {getStatusLabel(c.status)}
-            </Badge>
-          </div>
-          
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDuration(c)}</span>
-            {c.end_date && <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {new Date(c.end_date).toLocaleDateString("ar")}</span>}
-          </div>
 
-          {c.status === "active" && (
-            <div className="bg-primary/5 rounded-lg p-2 text-center">
-              <p className="text-lg font-bold text-primary">{c.challenger_id === profile?.id ? c.challenger_xp : c.challenged_xp} XP</p>
-              <p className="text-[10px] text-muted-foreground">نقاطك في التحدي</p>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDuration(c)}</span>
+              {c.end_date && <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {new Date(c.end_date).toLocaleDateString("ar")}</span>}
             </div>
-          )}
 
-          {showActions && (
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1 gradient-primary text-primary-foreground gap-1" onClick={() => acceptChallenge(c.id)}>
-                <CheckCircle className="h-4 w-4" /> قبول
-              </Button>
-              <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => declineChallenge(c.id)}>
-                <XCircle className="h-4 w-4" /> رفض
-              </Button>
-            </div>
-          )}
+            {c.status === "active" && (
+              <div className="rounded-xl gradient-primary text-white p-3 text-center shadow-md">
+                <p className="text-2xl font-black">{c.challenger_id === profile?.id ? c.challenger_xp : c.challenged_xp} <span className="text-sm opacity-80">XP</span></p>
+                <p className="text-[10px] opacity-90">نقاطك في التحدي</p>
+              </div>
+            )}
 
-          {c.status === "completed" && c.winner_id === profile?.id && (
-            <div className="flex items-center gap-1 text-secondary text-xs font-medium">
-              <Trophy className="h-3.5 w-3.5" /> فزت بهذا التحدي!
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
+            {showActions && (
+              <div className="flex gap-2">
+                <Button size="sm" className="flex-1 gradient-primary text-primary-foreground gap-1 rounded-xl glow-soft" onClick={() => acceptChallenge(c.id)}>
+                  <CheckCircle className="h-4 w-4" /> قبول
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1 gap-1 rounded-xl" onClick={() => declineChallenge(c.id)}>
+                  <XCircle className="h-4 w-4" /> رفض
+                </Button>
+              </div>
+            )}
+
+            {c.status === "completed" && c.winner_id === profile?.id && (
+              <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                <Trophy className="h-3.5 w-3.5" /> فزت بهذا التحدي! 🎉
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
 
   return (
-    <div className="space-y-5 max-w-lg mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Swords className="h-5 w-5 text-primary" /> التحديات
-        </h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gradient-primary text-primary-foreground gap-1"><Plus className="h-4 w-4" /> تحدي جديد</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>إنشاء تحدي جديد ⚔️</DialogTitle></DialogHeader>
-            <div className="space-y-4 mt-2">
-              <div className="space-y-2">
-                <Label>عنوان التحدي</Label>
-                <Input placeholder="مثال: إكمال جميع المناهج للامتحانات النهائية" value={title} onChange={(e) => setTitle(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>ابحث عن طالب</Label>
-                <Input placeholder="اكتب اسم الطالب..." value={searchUser} onChange={(e) => { setSearchUser(e.target.value); searchUsers(e.target.value); }} />
-                {users.length > 0 && (
-                  <div className="border rounded-lg max-h-32 overflow-y-auto">
-                    {users.map(u => (
-                      <button key={u.id} onClick={() => { setSelectedUser(u.id); setSearchUser(u.name); setUsers([]); }}
-                        className={`w-full text-right p-2 hover:bg-muted text-sm ${selectedUser === u.id ? "bg-accent" : ""}`}>{u.name}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>المادة</Label>
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
-                  <SelectContent>{subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>مدة التحدي</Label>
-                <div className="flex gap-2 mb-2">
-                  {(["preset", "custom", "date"] as const).map(t => (
-                    <Button key={t} variant={durationType === t ? "default" : "outline"} size="sm" onClick={() => setDurationType(t)}
-                      className={durationType === t ? "gradient-primary text-primary-foreground" : ""}>
-                      {t === "preset" ? "جاهز" : t === "custom" ? "مخصص" : "تاريخ"}
-                    </Button>
-                  ))}
+    <div className="space-y-5 max-w-lg mx-auto pb-4">
+      {/* Hero header */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-5 gradient-mesh text-white shadow-xl"
+      >
+        <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] bg-white/15 backdrop-blur px-2 py-1 rounded-full mb-2">
+              <Flame className="h-3 w-3" /> تحدَّ أصدقاءك
+            </div>
+            <h1 className="text-2xl font-black flex items-center gap-2"><Swords className="h-6 w-6" /> التحديات</h1>
+            <p className="text-xs opacity-90 mt-1">{activeChallenges.length} جاري • {pendingReceived.length} بانتظارك</p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0 gap-1 rounded-xl">
+                <Plus className="h-4 w-4" /> جديد
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>إنشاء تحدي جديد ⚔️</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-2">
+                <div className="space-y-2">
+                  <Label>عنوان التحدي</Label>
+                  <Input placeholder="إكمال جميع المناهج للامتحانات" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
-                {durationType === "preset" && (
-                  <div className="flex flex-wrap gap-2">
-                    {durationPresets.map(d => (
-                      <Button key={d.days} variant={durationDays === d.days ? "default" : "outline"} size="sm"
-                        onClick={() => setDurationDays(d.days)}
-                        className={durationDays === d.days ? "gradient-primary text-primary-foreground" : ""}>
-                        {d.label}
+                <div className="space-y-2">
+                  <Label>ابحث عن طالب</Label>
+                  <Input placeholder="اكتب اسم الطالب..." value={searchUser} onChange={(e) => { setSearchUser(e.target.value); searchUsers(e.target.value); }} />
+                  {users.length > 0 && (
+                    <div className="border rounded-lg max-h-32 overflow-y-auto">
+                      {users.map(u => (
+                        <button key={u.id} onClick={() => { setSelectedUser(u.id); setSearchUser(u.name); setUsers([]); }}
+                          className={`w-full text-right p-2 hover:bg-muted text-sm ${selectedUser === u.id ? "bg-accent" : ""}`}>{u.name}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>المادة</Label>
+                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                    <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
+                    <SelectContent>{subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>مدة التحدي</Label>
+                  <div className="flex gap-2 mb-2">
+                    {(["preset", "custom", "date"] as const).map(t => (
+                      <Button key={t} variant={durationType === t ? "default" : "outline"} size="sm" onClick={() => setDurationType(t)}
+                        className={durationType === t ? "gradient-primary text-primary-foreground" : ""}>
+                        {t === "preset" ? "جاهز" : t === "custom" ? "مخصص" : "تاريخ"}
                       </Button>
                     ))}
                   </div>
-                )}
-                {durationType === "custom" && (
-                  <Input type="number" placeholder="عدد الأيام..." value={customDays} onChange={(e) => setCustomDays(e.target.value)} />
-                )}
-                {durationType === "date" && (
-                  <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={new Date().toISOString().split("T")[0]} />
-                )}
+                  {durationType === "preset" && (
+                    <div className="flex flex-wrap gap-2">
+                      {durationPresets.map(d => (
+                        <Button key={d.days} variant={durationDays === d.days ? "default" : "outline"} size="sm"
+                          onClick={() => setDurationDays(d.days)}
+                          className={durationDays === d.days ? "gradient-primary text-primary-foreground" : ""}>
+                          {d.label}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  {durationType === "custom" && (
+                    <Input type="number" placeholder="عدد الأيام..." value={customDays} onChange={(e) => setCustomDays(e.target.value)} />
+                  )}
+                  {durationType === "date" && (
+                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={new Date().toISOString().split("T")[0]} />
+                  )}
+                </div>
+                <Button className="w-full gradient-primary text-primary-foreground rounded-xl glow-soft" onClick={createChallenge}
+                  disabled={!selectedUser || !selectedSubject || !title.trim()}>
+                  أرسل التحدي ⚔️
+                </Button>
               </div>
-              <Button className="w-full gradient-primary text-primary-foreground" onClick={createChallenge}
-                disabled={!selectedUser || !selectedSubject || !title.trim()}>
-                أرسل التحدي ⚔️
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </motion.div>
 
       {pendingReceived.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-amber-500">⏳ تحديات بانتظارك</h2>
+          <h2 className="text-sm font-black flex items-center gap-1 text-amber-500">⏳ بانتظارك</h2>
           {pendingReceived.map(c => <ChallengeCard key={c.id} c={c} showActions />)}
         </div>
       )}
 
       {activeChallenges.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-primary">🔥 تحديات جارية</h2>
+          <h2 className="text-sm font-black flex items-center gap-1 text-primary">🔥 جارية</h2>
           {activeChallenges.map(c => <ChallengeCard key={c.id} c={c} />)}
         </div>
       )}
 
       <div className="space-y-3">
-        <h2 className="text-sm font-bold text-muted-foreground">📋 السجل</h2>
+        <h2 className="text-sm font-black text-muted-foreground">📋 السجل</h2>
         {pastChallenges.length === 0 ? (
-          <p className="text-center py-6 text-muted-foreground text-sm">لا توجد تحديات سابقة</p>
+          <Card className="glass border-0">
+            <CardContent className="py-8 text-center text-muted-foreground text-sm">لا توجد تحديات سابقة</CardContent>
+          </Card>
         ) : (
           pastChallenges.map(c => <ChallengeCard key={c.id} c={c} />)
         )}

@@ -9,15 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { BookOpen, Plus, Brain, Loader2, Trash2 } from "lucide-react";
+import { BookOpen, Plus, Brain, Loader2, Trash2, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
 const examTypes = [
-  { value: "regular", label: "اختبار عادي", color: "bg-primary/10 text-primary" },
-  { value: "ministerial", label: "اختبار الدخول الوزاري", color: "bg-secondary/10 text-secondary" },
-  { value: "exemption", label: "اختبار الإعفاء", color: "bg-accent/10 text-accent-foreground" },
+  { value: "regular", label: "اختبار عادي", color: "bg-primary/15 text-primary border-primary/20" },
+  { value: "ministerial", label: "اختبار الدخول الوزاري", color: "bg-secondary/15 text-secondary border-secondary/20" },
+  { value: "exemption", label: "اختبار الإعفاء", color: "bg-amber-500/15 text-amber-600 border-amber-500/20" },
 ];
 
 interface Grade {
@@ -96,9 +96,7 @@ export default function Grades() {
         body: { subject: g.subject, grade: profile?.grade, current_grade_value: g.grade_value, max_grade: g.max_grade, notes: g.notes },
       });
       if (error) throw error;
-      await supabase.from("study_plans").insert({
-        user_id: profile!.id, subject: g.subject, plan_content: data.plan,
-      });
+      await supabase.from("study_plans").insert({ user_id: profile!.id, subject: g.subject, plan_content: data.plan });
       toast.success("تم إنشاء خطة الدراسة! 🧠");
       fetchPlans();
       setTab("plans");
@@ -113,134 +111,159 @@ export default function Grades() {
     : null;
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" /> الدرجات والخطط
-        </h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary text-primary-foreground gap-2"><Plus className="h-4 w-4" /> إضافة درجة</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>إضافة درجة مادة</DialogTitle></DialogHeader>
-            <div className="space-y-3 mt-2">
-              <div className="space-y-2">
-                <Label>نوع الاختبار</Label>
-                <Select value={examType} onValueChange={setExamType}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{examTypes.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>المادة</Label>
-                <Select value={subject} onValueChange={setSubject}>
-                  <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
-                  <SelectContent>{subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>الدرجة</Label>
-                  <Input type="number" placeholder="85" value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>من</Label>
-                  <Input type="number" placeholder="100" value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>الفصل</Label>
-                  <Input placeholder="الأول" value={semester} onChange={e => setSemester(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>السنة</Label>
-                  <Input placeholder="2025-2026" value={academicYear} onChange={e => setAcademicYear(e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>ملاحظات</Label>
-                <Textarea placeholder="ملاحظات عن المادة..." value={notes} onChange={e => setNotes(e.target.value)} />
-              </div>
-              <Button className="w-full gradient-primary text-primary-foreground" onClick={addGrade} disabled={!subject || !gradeValue}>إضافة</Button>
+    <div className="space-y-5 max-w-3xl mx-auto pb-4">
+      {/* Hero */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-5 gradient-mesh text-white shadow-xl"
+      >
+        <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-1.5 text-[11px] bg-white/15 backdrop-blur px-2 py-1 rounded-full mb-2">
+              <GraduationCap className="h-3 w-3" /> الدرجات والخطط
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <h1 className="text-2xl font-black flex items-center gap-2"><BookOpen className="h-6 w-6" /> أداؤك الأكاديمي</h1>
+            {overallAverage ? (
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-4xl font-black">{overallAverage}%</span>
+                <span className="text-xs opacity-90">المعدل العام</span>
+              </div>
+            ) : (
+              <p className="text-xs opacity-90 mt-2">ابدأ بإضافة درجاتك للحصول على خطة ذكية</p>
+            )}
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0 gap-1 rounded-xl shrink-0">
+                <Plus className="h-4 w-4" /> إضافة
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>إضافة درجة مادة</DialogTitle></DialogHeader>
+              <div className="space-y-3 mt-2">
+                <div className="space-y-2">
+                  <Label>نوع الاختبار</Label>
+                  <Select value={examType} onValueChange={setExamType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{examTypes.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>المادة</Label>
+                  <Select value={subject} onValueChange={setSubject}>
+                    <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
+                    <SelectContent>{subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>الدرجة</Label>
+                    <Input type="number" placeholder="85" value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>من</Label>
+                    <Input type="number" placeholder="100" value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>الفصل</Label>
+                    <Input placeholder="الأول" value={semester} onChange={e => setSemester(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>السنة</Label>
+                    <Input placeholder="2025-2026" value={academicYear} onChange={e => setAcademicYear(e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>ملاحظات</Label>
+                  <Textarea placeholder="ملاحظات عن المادة..." value={notes} onChange={e => setNotes(e.target.value)} />
+                </div>
+                <Button className="w-full gradient-primary text-primary-foreground rounded-xl glow-soft" onClick={addGrade} disabled={!subject || !gradeValue}>إضافة</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </motion.div>
 
-      {overallAverage && (
-        <Card className="glow-primary">
-          <CardContent className="pt-5 text-center">
-            <p className="text-sm text-muted-foreground">المعدل العام</p>
-            <p className="text-4xl font-bold gradient-text">{overallAverage}%</p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex gap-2">
-        <Button variant={tab === "grades" ? "default" : "outline"} onClick={() => setTab("grades")}
-          className={tab === "grades" ? "gradient-primary text-primary-foreground" : ""}>الدرجات</Button>
-        <Button variant={tab === "plans" ? "default" : "outline"} onClick={() => setTab("plans")}
-          className={tab === "plans" ? "gradient-primary text-primary-foreground" : ""}>خطط الدراسة</Button>
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 rounded-2xl glass">
+        {([
+          { k: "grades", label: "الدرجات" },
+          { k: "plans", label: "خطط الدراسة" },
+        ] as const).map(t => (
+          <button key={t.k} onClick={() => setTab(t.k as any)}
+            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === t.k ? "gradient-primary text-white shadow-md" : "text-muted-foreground"}`}>
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {tab === "grades" ? (
         <div className="space-y-3">
           {grades.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground text-sm">لم تضف أي درجات بعد</p>
+            <Card className="glass border-0"><CardContent className="py-10 text-center text-muted-foreground text-sm">لم تضف أي درجات بعد</CardContent></Card>
           ) : (
-            grades.map((g, i) => (
-              <motion.div key={g.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Card>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="space-y-1">
-                        <p className="font-bold">{g.subject}</p>
-                        <p className="text-xs text-muted-foreground">{g.semester} • {g.academic_year}</p>
-                        {(() => {
-                          const et = examTypes.find(e => e.value === (g.exam_type || "regular"));
-                          return et ? <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full ${et.color}`}>{et.label}</span> : null;
-                        })()}
+            grades.map((g, i) => {
+              const pct = (g.grade_value / g.max_grade) * 100;
+              const et = examTypes.find(e => e.value === (g.exam_type || "regular"));
+              return (
+                <motion.div key={g.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                  <Card className="glass border-0 card-hover overflow-hidden">
+                    <div className={`h-1.5 ${pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "gradient-primary" : "bg-amber-500"}`} />
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between mb-3 gap-2">
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <p className="font-black text-base truncate">{g.subject}</p>
+                          <p className="text-[11px] text-muted-foreground">{g.semester} • {g.academic_year}</p>
+                          {et && <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${et.color}`}>{et.label}</span>}
+                        </div>
+                        <div className="text-left shrink-0">
+                          <p className="text-2xl font-black gradient-text">{g.grade_value}<span className="text-xs text-muted-foreground">/{g.max_grade}</span></p>
+                          <p className="text-[11px] text-muted-foreground font-bold">{pct.toFixed(0)}%</p>
+                        </div>
                       </div>
-                      <div className="text-left">
-                        <p className="text-2xl font-bold text-primary">{g.grade_value}<span className="text-sm text-muted-foreground">/{g.max_grade}</span></p>
-                        <p className="text-xs text-muted-foreground">{((g.grade_value / g.max_grade) * 100).toFixed(0)}%</p>
+                      {g.notes && <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{g.notes}</p>}
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1 flex-1 rounded-xl" onClick={() => generatePlan(g)} disabled={generatingPlan === g.id}>
+                          {generatingPlan === g.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                          خطة دراسة ذكية
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteGrade(g.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       </div>
-                    </div>
-                    {g.notes && <p className="text-sm text-muted-foreground mb-2">{g.notes}</p>}
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => generatePlan(g)} disabled={generatingPlan === g.id}>
-                        {generatingPlan === g.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
-                        إنشاء خطة دراسة
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => deleteGrade(g.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })
           )}
         </div>
       ) : (
         <div className="space-y-3">
           {plans.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground text-sm">لا توجد خطط دراسية بعد. أضف درجة واطلب خطة!</p>
+            <Card className="glass border-0"><CardContent className="py-10 text-center text-muted-foreground text-sm">لا توجد خطط دراسية بعد. أضف درجة واطلب خطة!</CardContent></Card>
           ) : (
-            plans.map(p => (
-              <Card key={p.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-primary" /> {p.subject}
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("ar")}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap text-sm leading-relaxed">{p.plan_content}</div>
-                </CardContent>
-              </Card>
+            plans.map((p, i) => (
+              <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <Card className="glass border-0 card-hover">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-md">
+                        <Brain className="h-4 w-4 text-white" />
+                      </div>
+                      {p.subject}
+                    </CardTitle>
+                    <p className="text-[11px] text-muted-foreground">{new Date(p.created_at).toLocaleDateString("ar")}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap text-sm leading-relaxed">{p.plan_content}</div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))
           )}
         </div>

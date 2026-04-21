@@ -81,26 +81,28 @@ export default function Profile() {
   const currentRankIdx = allRanks.indexOf(profile.rank);
 
   return (
-    <div className="space-y-4 max-w-lg mx-auto">
-      {/* Header Card */}
-      <Card className="overflow-hidden">
-        <div className="h-16 gradient-primary" />
-        <CardContent className="-mt-10 text-center">
-          <div className="flex justify-center">
-            <AvatarUpload size="lg" />
+    <div className="space-y-4 max-w-lg mx-auto pb-4">
+      {/* Hero */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-6 gradient-mesh text-white shadow-xl"
+      >
+        <div className="absolute -top-12 -left-12 w-44 h-44 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex flex-col items-center text-center">
+          <AvatarUpload size="lg" />
+          <h1 className="text-xl font-black mt-3">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
+          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
+            <span>{rank.icon}</span> {rank.label} • المستوى {profile.level}
           </div>
-          <h1 className="text-lg font-bold mt-2">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
-          <p className="text-sm font-medium mt-0.5">{rank.icon} {rank.label}</p>
-          <p className="text-xs text-muted-foreground">
-            المستوى {profile.level} • {isTeacher ? "أستاذ" : "طالب"}
-          </p>
-          {profile.grade && <p className="text-xs text-muted-foreground mt-0.5">{profile.grade} • {profile.country}</p>}
-        </CardContent>
-      </Card>
+          {profile.grade && <p className="text-xs opacity-80 mt-2">{profile.grade} • {profile.country}</p>}
+        </div>
+      </motion.div>
 
-      {/* Teacher Profile Section */}
+      {/* Teacher Profile */}
       {isTeacher && (
-        <Card>
+        <Card className="glass border-0 card-hover">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2"><Star className="h-4 w-4 text-secondary" /> ملف الأستاذ</CardTitle>
@@ -111,11 +113,11 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-3">
             {teacherProfile && (
-              <div className="flex items-center gap-3 p-3 bg-secondary/10 rounded-lg">
-                <Star className="h-8 w-8 text-secondary" />
+              <div className="flex items-center gap-3 p-3 rounded-2xl gradient-primary text-white shadow-md">
+                <Star className="h-8 w-8" />
                 <div>
-                  <p className="text-2xl font-bold">{Number(teacherProfile.average_rating).toFixed(1)}/10</p>
-                  <p className="text-xs text-muted-foreground">{teacherProfile.total_ratings} تقييم</p>
+                  <p className="text-2xl font-black">{Number(teacherProfile.average_rating).toFixed(1)}<span className="text-sm opacity-80">/10</span></p>
+                  <p className="text-[11px] opacity-90">{teacherProfile.total_ratings} تقييم</p>
                 </div>
               </div>
             )}
@@ -129,17 +131,17 @@ export default function Profile() {
                 <div><Label className="text-xs">تويتر</Label><Input value={form.twitter_url} onChange={e => setForm({...form, twitter_url: e.target.value})} placeholder="رابط الحساب" /></div>
                 <div><Label className="text-xs">تلغرام</Label><Input value={form.telegram_url} onChange={e => setForm({...form, telegram_url: e.target.value})} placeholder="رابط القناة" /></div>
                 <div><Label className="text-xs">موقع</Label><Input value={form.website_url} onChange={e => setForm({...form, website_url: e.target.value})} placeholder="رابط الموقع" /></div>
-                <Button onClick={saveTeacherProfile} className="w-full gap-2 gradient-primary text-primary-foreground"><Save className="h-4 w-4" /> حفظ</Button>
+                <Button onClick={saveTeacherProfile} className="w-full gap-2 gradient-primary text-primary-foreground rounded-xl glow-soft"><Save className="h-4 w-4" /> حفظ</Button>
               </div>
             ) : (
               teacherProfile && (
                 <div className="space-y-2 text-sm">
                   {teacherProfile.specialization && <p><span className="text-muted-foreground">التخصص:</span> {teacherProfile.specialization}</p>}
-                  {teacherProfile.bio && <p className="text-muted-foreground">{teacherProfile.bio}</p>}
+                  {teacherProfile.bio && <p className="text-muted-foreground leading-relaxed">{teacherProfile.bio}</p>}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {teacherProfile.youtube_url && <a href={teacherProfile.youtube_url} target="_blank" className="p-2 rounded-lg bg-red-500/10 text-red-500"><Youtube className="h-4 w-4" /></a>}
-                    {teacherProfile.instagram_url && <a href={teacherProfile.instagram_url} target="_blank" className="p-2 rounded-lg bg-pink-500/10 text-pink-500"><Instagram className="h-4 w-4" /></a>}
-                    {teacherProfile.website_url && <a href={teacherProfile.website_url} target="_blank" className="p-2 rounded-lg bg-blue-500/10 text-blue-500"><LinkIcon className="h-4 w-4" /></a>}
+                    {teacherProfile.youtube_url && <a href={teacherProfile.youtube_url} target="_blank" className="p-2 rounded-xl glass hover:scale-110 transition-transform"><Youtube className="h-4 w-4 text-red-500" /></a>}
+                    {teacherProfile.instagram_url && <a href={teacherProfile.instagram_url} target="_blank" className="p-2 rounded-xl glass hover:scale-110 transition-transform"><Instagram className="h-4 w-4 text-pink-500" /></a>}
+                    {teacherProfile.website_url && <a href={teacherProfile.website_url} target="_blank" className="p-2 rounded-xl glass hover:scale-110 transition-transform"><LinkIcon className="h-4 w-4 text-primary" /></a>}
                   </div>
                 </div>
               )
@@ -150,31 +152,39 @@ export default function Profile() {
 
       {/* XP Progress - students */}
       {!isTeacher && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Zap className="h-4 w-4 text-secondary" />التقدم</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex justify-between text-sm mb-2"><span>XP</span><span className="text-primary font-bold">{profile.total_xp} / {xpToNext}</span></div>
+        <Card className="glass border-0 card-hover">
+          <CardContent className="pt-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-secondary" /> التقدم</span>
+              <span className="text-xs text-muted-foreground">المستوى التالي</span>
+            </div>
             <Progress value={xpPercent} className="h-3" />
+            <div className="flex justify-between text-xs mt-2">
+              <span className="text-muted-foreground">{profile.total_xp} XP</span>
+              <span className="font-bold text-primary">{xpToNext} XP</span>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {(isTeacher ? [
-          { label: "المستوى", value: profile.level, icon: Award },
-          { label: "إجمالي XP", value: profile.total_xp, icon: Zap },
+          { label: "المستوى", value: profile.level, icon: Award, color: "from-violet-500 to-fuchsia-500" },
+          { label: "إجمالي XP", value: profile.total_xp, icon: Zap, color: "from-cyan-400 to-blue-500" },
         ] : [
-          { label: "ساعات الدراسة", value: `${Number(profile.total_hours).toFixed(1)}`, icon: Clock },
-          { label: "نقاط الأسبوع", value: `${profile.weekly_xp} XP`, icon: TrendingUp },
-          { label: "المستوى", value: profile.level, icon: Award },
-          { label: "إجمالي XP", value: profile.total_xp, icon: Zap },
+          { label: "ساعات الدراسة", value: `${Number(profile.total_hours).toFixed(1)}`, icon: Clock, color: "from-violet-500 to-indigo-500" },
+          { label: "نقاط الأسبوع", value: `${profile.weekly_xp}`, icon: TrendingUp, color: "from-cyan-400 to-teal-500" },
+          { label: "المستوى", value: profile.level, icon: Award, color: "from-amber-400 to-orange-500" },
+          { label: "إجمالي XP", value: profile.total_xp, icon: Zap, color: "from-pink-400 to-rose-500" },
         ]).map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
-            <Card>
-              <CardContent className="pt-4 text-center">
-                <stat.icon className="h-5 w-5 mx-auto mb-1 text-primary" />
-                <p className="text-lg font-bold">{stat.value}</p>
+            <Card className="glass border-0 card-hover overflow-hidden">
+              <CardContent className="pt-4 pb-4 text-center relative">
+                <div className={`w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
+                  <stat.icon className="h-5 w-5 text-white" />
+                </div>
+                <p className="text-xl font-black">{stat.value}</p>
                 <p className="text-[10px] text-muted-foreground">{stat.label}</p>
               </CardContent>
             </Card>
@@ -184,7 +194,7 @@ export default function Profile() {
 
       {/* Rank Path - students */}
       {!isTeacher && (
-        <Card>
+        <Card className="glass border-0">
           <CardHeader className="pb-2"><CardTitle className="text-sm">مسار الرتب</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center justify-between gap-1">
@@ -192,10 +202,10 @@ export default function Profile() {
                 const rc = rankConfig[r];
                 const achieved = i <= currentRankIdx;
                 return (
-                  <div key={r} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-25"}`}>
-                    <span className="text-lg">{rc.icon}</span>
-                    <span className="text-[10px] text-center">{rc.label}</span>
-                    {i === currentRankIdx && <div className="w-2 h-2 rounded-full bg-primary glow-primary" />}
+                  <div key={r} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-30"}`}>
+                    <span className="text-xl">{rc.icon}</span>
+                    <span className="text-[9px] text-center">{rc.label}</span>
+                    {i === currentRankIdx && <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />}
                   </div>
                 );
               })}
@@ -206,12 +216,12 @@ export default function Profile() {
 
       {/* Subjects */}
       {profile.subjects && profile.subjects.length > 0 && (
-        <Card>
+        <Card className="glass border-0">
           <CardHeader className="pb-2"><CardTitle className="text-sm">المواد</CardTitle></CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {profile.subjects.map((s) => (
-                <span key={s} className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">{s}</span>
+                <span key={s} className="text-xs gradient-primary text-white px-3 py-1 rounded-full font-medium shadow-sm">{s}</span>
               ))}
             </div>
           </CardContent>
@@ -221,16 +231,16 @@ export default function Profile() {
       {/* Actions */}
       <div className="grid grid-cols-2 gap-2">
         {!isTeacher && (
-          <Button variant="outline" className="gap-2" onClick={() => navigate("/grades")}>
+          <Button variant="outline" className="gap-2 rounded-xl glass border-0" onClick={() => navigate("/grades")}>
             <BookOpen className="h-4 w-4" /> الدرجات
           </Button>
         )}
-        <Button variant="outline" className="gap-2" onClick={() => navigate("/settings")}>
+        <Button variant="outline" className="gap-2 rounded-xl glass border-0" onClick={() => navigate("/settings")}>
           <Settings className="h-4 w-4" /> الإعدادات
         </Button>
       </div>
 
-      <Button variant="outline" className="w-full gap-2 text-destructive" onClick={signOut}>
+      <Button variant="outline" className="w-full gap-2 text-destructive rounded-xl glass border-0" onClick={signOut}>
         <LogOut className="h-4 w-4" /> تسجيل الخروج
       </Button>
     </div>
