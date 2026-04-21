@@ -86,9 +86,11 @@ export default function Challenges() {
 
   const searchUsers = async (query: string) => {
     if (query.length < 2) return;
+    // students-only challenges
     const { data } = await supabase
       .from("profiles").select("id, name")
       .neq("id", profile?.id || "")
+      .eq("role", "student")
       .ilike("name", `%${query}%`).limit(10);
     setUsers((data as UserOption[]) || []);
   };
