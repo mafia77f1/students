@@ -163,7 +163,10 @@ export default function Challenges() {
     const st = statusStyle(c.status);
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className={`glass border-0 overflow-hidden card-hover ${c.status === "active" ? "glow-soft" : ""}`}>
+        <Card
+          onClick={() => openDetails(c)}
+          className={`glass border-0 overflow-hidden card-hover cursor-pointer ${c.status === "active" ? "glow-soft" : ""}`}
+        >
           <div className={`h-1.5 ${st.bar}`} />
           <CardContent className="pt-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
@@ -187,7 +190,7 @@ export default function Challenges() {
             )}
 
             {showActions && (
-              <div className="flex gap-2">
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" className="flex-1 gradient-primary text-primary-foreground gap-1 rounded-xl glow-soft" onClick={() => acceptChallenge(c.id)}>
                   <CheckCircle className="h-4 w-4" /> قبول
                 </Button>
@@ -207,6 +210,24 @@ export default function Challenges() {
       </motion.div>
     );
   };
+
+  if (isTeacher) {
+    return (
+      <div className="max-w-lg mx-auto pt-12">
+        <Card className="glass border-0 text-center">
+          <CardContent className="py-12 space-y-3">
+            <div className="w-16 h-16 mx-auto rounded-2xl gradient-primary flex items-center justify-center glow-soft">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-lg font-black">التحديات للطلاب</h2>
+            <p className="text-sm text-muted-foreground">
+              صفحة التحديات مخصصة للطلاب فقط لتشجيع المنافسة الدراسية. كأستاذ، يمكنك متابعة طلابك من صفحة الحساب.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 max-w-lg mx-auto pb-4">
