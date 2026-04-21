@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -120,6 +120,18 @@ export default function Settings() {
           <p>الدور: {profile?.role === "teacher" ? "أستاذ" : "طالب"}</p>
         </CardContent>
       </Card>
+
+      <Button
+        variant="outline"
+        className="w-full gap-2"
+        onClick={() => {
+          localStorage.removeItem("splash_seen");
+          toast.success("سيتم عرض شاشة الترحيب من جديد عند إعادة الفتح ✨");
+          setTimeout(() => window.location.reload(), 600);
+        }}
+      >
+        <Sparkles className="h-4 w-4 text-primary" /> إعادة عرض شاشة الترحيب
+      </Button>
 
       <Button variant="outline" className="w-full gap-2 text-destructive" onClick={signOut}>
         <LogOut className="h-4 w-4" /> تسجيل الخروج
