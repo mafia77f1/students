@@ -1,272 +1,311 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { BookOpen, Plus, Brain, Loader2, Trash2, GraduationCap } from "lucide-react";
+import { BookOpen, Brain, Loader2, GraduationCap, FileText, Award, ArrowRight, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
-const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
+type ExamType = "ministerial" | "exemption";
+type Term = "first" | "mid" | "second";
 
-const examTypes = [
-  { value: "regular", label: "اختبار عادي", color: "bg-primary/15 text-primary border-primary/20" },
-  { value: "ministerial", label: "اختبار الدخول الوزاري", color: "bg-secondary/15 text-secondary border-secondary/20" },
-  { value: "exemption", label: "اختبار الإعفاء", color: "bg-amber-500/15 text-amber-600 border-amber-500/20" },
-];
+const TERM_LABELS: Record<Term, string> = {
+  first: "نصف أول",
+  mid: "نصف السنة",
+  second: "نصف ثاني",
+};
 
 interface Grade {
   id: string;
   subject: string;
-  grade_value: number;
-  max_grade: number;
-  semester: string;
-  academic_year: string;
-  notes: string;
-  exam_type?: string;
+  grade_value: number | null;
+  max_grade: number | null;
+  exam_type: ExamType | string;
+  term: Term | string | null;
 }
 
-interface StudyPlan {
-  id: string;
-  subject: string;
-  plan_content: string;
-  is_active: boolean;
-  progress: number;
-  created_at: string;
-}
+interface StudyPlan { id: string; subject: string; plan_content: string; created_at: string; }
+
+const examInfo = {
+  ministerial: {
+    label: "اختبار الدخول الوزاري",
+    desc: "درجاتك في الامتحانات الوزارية",
+    icon: FileText,
+    color: "from-violet-500 to-fuchsia-500",
+  },
+  exemption: {
+    label: "اختبار الإعفاء",
+    desc: "درجاتك في امتحانات الإعفاء",
+    icon: Award,
+    color: "from-amber-500 to-orange-500",
+  },
+} as const;
 
 export default function Grades() {
   const { profile } = useAuth();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [plans, setPlans] = useState<StudyPlan[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [subject, setSubject] = useState("");
-  const [gradeValue, setGradeValue] = useState("");
-  const [maxGrade, setMaxGrade] = useState("100");
-  const [semester, setSemester] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [notes, setNotes] = useState("");
-  const [examType, setExamType] = useState("regular");
+  const [activeExam, setActiveExam] = useState<ExamType | null>(null);
   const [generatingPlan, setGeneratingPlan] = useState<string | null>(null);
-  const [tab, setTab] = useState<"grades" | "plans">("grades");
+  const [editing, setEditing] = useState<Record<string, string>>({}); // key: subject|term
+  const [saving, setSaving] = useState(false);
 
-  const fetchGrades = async () => {
+  const userSubjects = profile?.subjects || [];
+
+  const fetchAll = async () => {
     if (!profile) return;
-    const { data } = await supabase.from("student_grades").select("*").eq("user_id", profile.id).order("created_at", { ascending: false });
-    setGrades((data as Grade[]) || []);
+    const [g, p] = await Promise.all([
+      supabase.from("student_grades").select("*").eq("user_id", profile.id),
+      supabase.from("study_plans").select("*").eq("user_id", profile.id).order("created_at", { ascending: false }),
+    ]);
+    setGrades((g.data as Grade[]) || []);
+    setPlans((p.data as StudyPlan[]) || []);
   };
 
-  const fetchPlans = async () => {
-    if (!profile) return;
-    const { data } = await supabase.from("study_plans").select("*").eq("user_id", profile.id).order("created_at", { ascending: false });
-    setPlans((data as StudyPlan[]) || []);
+  useEffect(() => { fetchAll(); }, [profile]);
+
+  // Pre-fill edit map when activeExam changes
+  useEffect(() => {
+    if (!activeExam) return;
+    const map: Record<string, string> = {};
+    userSubjects.forEach((s) => {
+      (["first", "mid", "second"] as Term[]).forEach((t) => {
+        const found = grades.find((g) => g.subject === s && g.exam_type === activeExam && g.term === t);
+        map[`${s}|${t}`] = found?.grade_value != null ? String(found.grade_value) : "";
+      });
+    });
+    setEditing(map);
+  }, [activeExam, grades, userSubjects.join("|")]);
+
+  const setField = (subject: string, term: Term, value: string) => {
+    if (value && !/^\d{0,3}(\.\d{0,2})?$/.test(value)) return;
+    setEditing((p) => ({ ...p, [`${subject}|${term}`]: value }));
   };
 
-  useEffect(() => { fetchGrades(); fetchPlans(); }, [profile]);
-
-  const addGrade = async () => {
-    if (!profile || !subject || !gradeValue) return;
-    const { error } = await supabase.from("student_grades").insert({
-      user_id: profile.id, subject, grade_value: parseFloat(gradeValue), max_grade: parseFloat(maxGrade),
-      semester, academic_year: academicYear, notes, exam_type: examType,
-    } as any);
-    if (error) toast.error("حصل خطأ");
-    else {
-      toast.success("تم إضافة الدرجة!");
-      setDialogOpen(false);
-      setSubject(""); setGradeValue(""); setNotes(""); setExamType("regular");
-      fetchGrades();
+  const saveAll = async () => {
+    if (!profile || !activeExam) return;
+    setSaving(true);
+    const ops: Promise<any>[] = [];
+    for (const s of userSubjects) {
+      for (const t of ["first", "mid", "second"] as Term[]) {
+        const val = editing[`${s}|${t}`];
+        const num = val ? parseFloat(val) : null;
+        const existing = grades.find((g) => g.subject === s && g.exam_type === activeExam && g.term === t);
+        if (existing && (num == null || isNaN(num))) {
+          ops.push(supabase.from("student_grades").delete().eq("id", existing.id));
+        } else if (num != null && !isNaN(num)) {
+          if (existing) {
+            ops.push(supabase.from("student_grades").update({ grade_value: num }).eq("id", existing.id));
+          } else {
+            ops.push(supabase.from("student_grades").insert({
+              user_id: profile.id, subject: s, exam_type: activeExam, term: t,
+              grade_value: num, max_grade: 100,
+            } as any));
+          }
+        }
+      }
     }
+    await Promise.all(ops);
+    await fetchAll();
+    setSaving(false);
+    toast.success("تم حفظ الدرجات ✅");
   };
 
-  const deleteGrade = async (id: string) => {
-    await supabase.from("student_grades").delete().eq("id", id);
-    fetchGrades();
+  // Subject avg = average of available terms (Iraqi-style "السعي السنوي")
+  const subjectAverage = (subject: string): number | null => {
+    if (!activeExam) return null;
+    const vals = (["first", "mid", "second"] as Term[])
+      .map((t) => {
+        const v = editing[`${subject}|${t}`];
+        return v ? parseFloat(v) : NaN;
+      })
+      .filter((n) => !isNaN(n));
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
   };
 
-  const generatePlan = async (g: Grade) => {
-    setGeneratingPlan(g.id);
+  const overallAverage = useMemo(() => {
+    const avgs = userSubjects.map(subjectAverage).filter((n): n is number => n != null);
+    if (!avgs.length) return null;
+    return avgs.reduce((a, b) => a + b, 0) / avgs.length;
+  }, [editing, activeExam, userSubjects.join("|")]);
+
+  const generatePlan = async (subject: string) => {
+    setGeneratingPlan(subject);
     try {
+      const avg = subjectAverage(subject);
       const { data, error } = await supabase.functions.invoke("generate-study-plan", {
-        body: { subject: g.subject, grade: profile?.grade, current_grade_value: g.grade_value, max_grade: g.max_grade, notes: g.notes },
+        body: { subject, grade: profile?.grade, current_grade_value: avg, max_grade: 100, notes: "" },
       });
       if (error) throw error;
-      await supabase.from("study_plans").insert({ user_id: profile!.id, subject: g.subject, plan_content: data.plan });
-      toast.success("تم إنشاء خطة الدراسة! 🧠");
-      fetchPlans();
-      setTab("plans");
+      await supabase.from("study_plans").insert({ user_id: profile!.id, subject, plan_content: data.plan });
+      toast.success("تم إنشاء خطة الدراسة 🧠");
+      fetchAll();
     } catch {
       toast.error("حصل خطأ في إنشاء الخطة");
     }
     setGeneratingPlan(null);
   };
 
-  const overallAverage = grades.length > 0
-    ? (grades.reduce((sum, g) => sum + (g.grade_value / g.max_grade) * 100, 0) / grades.length).toFixed(1)
-    : null;
-
-  return (
-    <div className="space-y-5 max-w-3xl mx-auto pb-4">
-      {/* Hero */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-5 gradient-mesh text-white shadow-xl"
-      >
-        <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative flex items-center justify-between gap-4">
-          <div className="min-w-0">
+  // ===== List view: choose exam type =====
+  if (!activeExam) {
+    return (
+      <div className="space-y-5 max-w-lg mx-auto pb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-3xl p-5 gradient-mesh text-white shadow-xl"
+        >
+          <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
+          <div className="relative">
             <div className="inline-flex items-center gap-1.5 text-[11px] bg-white/15 backdrop-blur px-2 py-1 rounded-full mb-2">
-              <GraduationCap className="h-3 w-3" /> الدرجات والخطط
+              <GraduationCap className="h-3 w-3" /> الدرجات
             </div>
             <h1 className="text-2xl font-black flex items-center gap-2"><BookOpen className="h-6 w-6" /> أداؤك الأكاديمي</h1>
-            {overallAverage ? (
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-4xl font-black">{overallAverage}%</span>
+            <p className="text-xs opacity-90 mt-2">اختر نوع الاختبار لإدخال درجات الفصول الثلاثة</p>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 gap-3">
+          {(["ministerial", "exemption"] as ExamType[]).map((t, i) => {
+            const info = examInfo[t];
+            const Icon = info.icon;
+            const count = grades.filter((g) => g.exam_type === t).length;
+            return (
+              <motion.button
+                key={t}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * i }}
+                onClick={() => setActiveExam(t)}
+                className="group relative overflow-hidden rounded-3xl p-5 text-right text-white shadow-lg card-hover"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${info.color}`} />
+                <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl group-hover:scale-110 transition" />
+                <div className="relative flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-lg">{info.label}</h3>
+                    <p className="text-xs opacity-90">{info.desc}</p>
+                    <p className="text-[10px] opacity-75 mt-1">{count} درجة محفوظة</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 opacity-80 rotate-180" />
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {plans.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black flex items-center gap-2">
+              <Brain className="h-4 w-4 text-primary" /> خططك الذكية
+            </h2>
+            {plans.map((p) => (
+              <Card key={p.id} className="glass border-0 card-hover">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+                      <Brain className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    {p.subject}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground/90">{p.plan_content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ===== Exam detail view: per-subject 3-term entry =====
+  const info = examInfo[activeExam];
+  const Icon = info.icon;
+
+  return (
+    <div className="space-y-4 max-w-lg mx-auto pb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        className={`relative overflow-hidden rounded-3xl p-5 text-white shadow-xl bg-gradient-to-br ${info.color}`}
+      >
+        <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <button onClick={() => setActiveExam(null)} className="text-[11px] opacity-80 hover:opacity-100 mb-1 flex items-center gap-1">
+              ← رجوع
+            </button>
+            <h1 className="text-xl font-black flex items-center gap-2"><Icon className="h-5 w-5" /> {info.label}</h1>
+            {overallAverage != null ? (
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black">{overallAverage.toFixed(1)}</span>
                 <span className="text-xs opacity-90">المعدل العام</span>
               </div>
             ) : (
-              <p className="text-xs opacity-90 mt-2">ابدأ بإضافة درجاتك للحصول على خطة ذكية</p>
+              <p className="text-xs opacity-90 mt-2">أدخل درجاتك ليُحسب المعدل</p>
             )}
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0 gap-1 rounded-xl shrink-0">
-                <Plus className="h-4 w-4" /> إضافة
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>إضافة درجة مادة</DialogTitle></DialogHeader>
-              <div className="space-y-3 mt-2">
-                <div className="space-y-2">
-                  <Label>نوع الاختبار</Label>
-                  <Select value={examType} onValueChange={setExamType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{examTypes.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>المادة</Label>
-                  <Select value={subject} onValueChange={setSubject}>
-                    <SelectTrigger><SelectValue placeholder="اختر المادة" /></SelectTrigger>
-                    <SelectContent>{subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>الدرجة</Label>
-                    <Input type="number" placeholder="85" value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>من</Label>
-                    <Input type="number" placeholder="100" value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>الفصل</Label>
-                    <Input placeholder="الأول" value={semester} onChange={e => setSemester(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>السنة</Label>
-                    <Input placeholder="2025-2026" value={academicYear} onChange={e => setAcademicYear(e.target.value)} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>ملاحظات</Label>
-                  <Textarea placeholder="ملاحظات عن المادة..." value={notes} onChange={e => setNotes(e.target.value)} />
-                </div>
-                <Button className="w-full gradient-primary text-primary-foreground rounded-xl glow-soft" onClick={addGrade} disabled={!subject || !gradeValue}>إضافة</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" onClick={saveAll} disabled={saving} className="bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0 gap-1 rounded-xl shrink-0">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} حفظ
+          </Button>
         </div>
       </motion.div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 p-1 rounded-2xl glass">
-        {([
-          { k: "grades", label: "الدرجات" },
-          { k: "plans", label: "خطط الدراسة" },
-        ] as const).map(t => (
-          <button key={t.k} onClick={() => setTab(t.k as any)}
-            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === t.k ? "gradient-primary text-white shadow-md" : "text-muted-foreground"}`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "grades" ? (
-        <div className="space-y-3">
-          {grades.length === 0 ? (
-            <Card className="glass border-0"><CardContent className="py-10 text-center text-muted-foreground text-sm">لم تضف أي درجات بعد</CardContent></Card>
-          ) : (
-            grades.map((g, i) => {
-              const pct = (g.grade_value / g.max_grade) * 100;
-              const et = examTypes.find(e => e.value === (g.exam_type || "regular"));
-              return (
-                <motion.div key={g.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                  <Card className="glass border-0 card-hover overflow-hidden">
-                    <div className={`h-1.5 ${pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "gradient-primary" : "bg-amber-500"}`} />
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-3 gap-2">
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <p className="font-black text-base truncate">{g.subject}</p>
-                          <p className="text-[11px] text-muted-foreground">{g.semester} • {g.academic_year}</p>
-                          {et && <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${et.color}`}>{et.label}</span>}
-                        </div>
-                        <div className="text-left shrink-0">
-                          <p className="text-2xl font-black gradient-text">{g.grade_value}<span className="text-xs text-muted-foreground">/{g.max_grade}</span></p>
-                          <p className="text-[11px] text-muted-foreground font-bold">{pct.toFixed(0)}%</p>
-                        </div>
-                      </div>
-                      {g.notes && <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{g.notes}</p>}
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1 flex-1 rounded-xl" onClick={() => generatePlan(g)} disabled={generatingPlan === g.id}>
-                          {generatingPlan === g.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
-                          خطة دراسة ذكية
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => deleteGrade(g.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
+      {userSubjects.length === 0 ? (
+        <Card className="glass border-0">
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            لم تختر مواد بعد. عدّل ملفك الشخصي لإضافتها.
+          </CardContent>
+        </Card>
       ) : (
-        <div className="space-y-3">
-          {plans.length === 0 ? (
-            <Card className="glass border-0"><CardContent className="py-10 text-center text-muted-foreground text-sm">لا توجد خطط دراسية بعد. أضف درجة واطلب خطة!</CardContent></Card>
-          ) : (
-            plans.map((p, i) => (
-              <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Card className="glass border-0 card-hover">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-md">
-                        <Brain className="h-4 w-4 text-white" />
+        userSubjects.map((s, i) => {
+          const avg = subjectAverage(s);
+          return (
+            <motion.div key={s} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+              <Card className="glass border-0 overflow-hidden card-hover">
+                <div className={`h-1.5 ${avg != null && avg >= 80 ? "bg-emerald-500" : avg != null && avg >= 60 ? "gradient-primary" : avg != null ? "bg-amber-500" : "bg-muted"}`} />
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-black text-sm">{s}</h3>
+                    {avg != null && (
+                      <div className="text-left">
+                        <p className="text-xl font-black gradient-text leading-none">{avg.toFixed(1)}</p>
+                        <p className="text-[9px] text-muted-foreground">معدل المادة</p>
                       </div>
-                      {p.subject}
-                    </CardTitle>
-                    <p className="text-[11px] text-muted-foreground">{new Date(p.created_at).toLocaleDateString("ar")}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap text-sm leading-relaxed">{p.plan_content}</div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
-          )}
-        </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["first", "mid", "second"] as Term[]).map((t) => (
+                      <div key={t} className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground font-bold">{TERM_LABELS[t]}</Label>
+                        <Input
+                          inputMode="decimal"
+                          placeholder="0-100"
+                          value={editing[`${s}|${t}`] ?? ""}
+                          onChange={(e) => setField(s, t, e.target.value)}
+                          className="text-center font-black h-10 rounded-xl"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm" variant="outline"
+                    onClick={() => generatePlan(s)} disabled={generatingPlan === s || avg == null}
+                    className="w-full gap-1 rounded-xl"
+                  >
+                    {generatingPlan === s ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                    خطة دراسة ذكية
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })
       )}
     </div>
   );
