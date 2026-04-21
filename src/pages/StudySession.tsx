@@ -1,30 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useParams, useNavigate } from "react-router-dom";
-import { Play, Pause, Square, RotateCcw } from "lucide-react";
+import { Play, Pause, Square, RotateCcw, Coffee, BookOpen, Timer } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+const BREAK_SECONDS = 2 * 60; // 2-minute break between rounds
 
 export default function StudySession() {
   const { id } = useParams();
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
+  const [roundSeconds, setRoundSeconds] = useState(0); // length of one focus round
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
-  const [totalStudied, setTotalStudied] = useState(0);
+  const [round, setRound] = useState(1);
+  const [studiedSeconds, setStudiedSeconds] = useState(0); // total focus seconds completed
+  const startTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (!id) return;
     supabase.from("study_sessions").select("*").eq("id", id).single().then(({ data }) => {
       if (data) {
         setSession(data);
-        setTimeLeft((data as any).duration_minutes * 60);
+        const r = (data as any).duration_minutes * 60;
+        setRoundSeconds(r);
+        setTimeLeft(r);
       }
     });
   }, [id]);
@@ -34,23 +41,24 @@ export default function StudySession() {
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          setIsRunning(false);
           if (!isBreak) {
-            toast.success("أحسنت! وقت الاستراحة 🎉");
-            setTotalStudied((s) => s + (session?.duration_minutes || 25));
+            // finished a focus round
+            toast.success("أحسنت! استراحة قصيرة ☕");
+            setStudiedSeconds((s) => s + roundSeconds);
             setIsBreak(true);
-            return 5 * 60;
+            return BREAK_SECONDS;
           } else {
-            toast.info("انتهت الاستراحة! يلا نكمل 💪");
+            toast.info("الاستراحة انتهت! يلا نكمل 💪");
             setIsBreak(false);
-            return (session?.duration_minutes || 25) * 60;
+            setRound((r) => r + 1);
+            return roundSeconds;
           }
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning, isBreak, session]);
+  }, [isRunning, isBreak, roundSeconds]);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -58,9 +66,15 @@ export default function StudySession() {
     return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
+  const totalSecondsCurrent = isBreak ? BREAK_SECONDS : roundSeconds;
+  const progress = totalSecondsCurrent > 0 ? ((totalSecondsCurrent - timeLeft) / totalSecondsCurrent) * 100 : 0;
+
   const endSession = async () => {
     if (!profile || !session) return;
-    const minutesStudied = totalStudied + (isBreak ? 0 : Math.floor(((session.duration_minutes * 60) - timeLeft) / 60));
+    // include current ongoing round if user ended mid-focus
+    const ongoing = !isBreak ? roundSeconds - timeLeft : 0;
+    const totalFocusSec = studiedSeconds + ongoing;
+    const minutesStudied = Math.max(0, Math.round(totalFocusSec / 60));
     const xp = minutesStudied * 2;
 
     await supabase.from("study_sessions").update({
@@ -72,83 +86,109 @@ export default function StudySession() {
       total_hours: Number(profile.total_hours) + minutesStudied / 60,
       total_xp: profile.total_xp + xp,
       weekly_xp: profile.weekly_xp + xp,
-      level: Math.floor((profile.total_xp + xp) / 200) + 1,
     }).eq("id", profile.id);
 
     await refreshProfile();
-    toast.success(`أحسنت! حصلت على ${xp} نقطة XP 🎉`);
+
+    const h = Math.floor(minutesStudied / 60);
+    const m = minutesStudied % 60;
+    const timeStr = h > 0 ? `${h} ساعة ${m} دقيقة` : `${m} دقيقة`;
+    toast.success(`أكملت ${session.subject} في ${timeStr} • +${xp} XP 🎉`, { duration: 5000 });
     navigate("/");
   };
 
   if (!session) return <div className="text-center py-10 text-muted-foreground">جاري التحميل...</div>;
 
-  const totalSeconds = isBreak ? 5 * 60 : (session.duration_minutes * 60);
-  const progress = ((totalSeconds - timeLeft) / totalSeconds) * 100;
+  const completedMinutes = Math.round((studiedSeconds + (!isBreak ? roundSeconds - timeLeft : 0)) / 60);
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      <div className="text-center">
-        <Badge variant="outline" className="mb-2">{session.subject}</Badge>
-        <h1 className="text-xl font-bold">{isBreak ? "🧘 وقت الاستراحة" : "📖 وقت الدراسة"}</h1>
+    <div className="max-w-lg mx-auto space-y-5">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary">{session.subject}</Badge>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Timer className="h-3.5 w-3.5" />
+          الجولة {round} • أنجزت {completedMinutes} دقيقة من المذاكرة الفعلية
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-8 pb-8 text-center space-y-6">
-          <motion.div
-            className="text-7xl font-bold font-mono gradient-text"
-            key={timeLeft}
-            initial={{ scale: 1.02 }}
-            animate={{ scale: 1 }}
-          >
-            {formatTime(timeLeft)}
-          </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={isBreak ? "break" : "focus"}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+        >
+          <Card className={`overflow-hidden border-0 shadow-2xl ${isBreak ? "bg-gradient-to-br from-emerald-500/10 to-teal-500/10" : "gradient-mesh text-white"}`}>
+            <CardContent className="pt-8 pb-8 text-center space-y-5">
+              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isBreak ? "bg-emerald-500/15 text-emerald-600" : "bg-white/20 text-white"}`}>
+                {isBreak ? <><Coffee className="h-3.5 w-3.5" /> وقت الاستراحة</> : <><BookOpen className="h-3.5 w-3.5" /> وقت التركيز</>}
+              </div>
 
-          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-1000 gradient-primary"
-              style={{ width: `${progress}%` }}
-            />
+              <motion.div
+                className={`text-7xl font-black font-mono tracking-tight ${isBreak ? "text-emerald-600" : "text-white drop-shadow-lg"}`}
+                key={timeLeft}
+                initial={{ scale: 1.04 }}
+                animate={{ scale: 1 }}
+              >
+                {formatTime(timeLeft)}
+              </motion.div>
+
+              <div className={`w-full h-2.5 rounded-full overflow-hidden ${isBreak ? "bg-emerald-500/20" : "bg-white/20"}`}>
+                <motion.div
+                  className={`h-full rounded-full ${isBreak ? "bg-emerald-500" : "bg-white"}`}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ ease: "linear", duration: 0.3 }}
+                />
+              </div>
+
+              <div className="flex justify-center gap-3">
+                <Button
+                  size="lg"
+                  onClick={() => setIsRunning(!isRunning)}
+                  className={`gap-2 min-w-[120px] rounded-xl font-black ${isBreak ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-white text-primary hover:bg-white/90"}`}
+                >
+                  {isRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  {isRunning ? "إيقاف" : "ابدأ"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => {
+                    setIsRunning(false);
+                    setIsBreak(false);
+                    setTimeLeft(roundSeconds);
+                  }}
+                  className={isBreak ? "" : "border-white/40 text-white hover:bg-white/10 hover:text-white"}
+                >
+                  <RotateCcw className="h-5 w-5" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+
+      <Card className="border-border/50">
+        <CardContent className="py-3 grid grid-cols-3 gap-3 text-center">
+          <div>
+            <p className="text-[10px] text-muted-foreground font-medium">الجولة</p>
+            <p className="font-black text-sm">{round}</p>
           </div>
-
-          <div className="flex justify-center gap-3">
-            <Button
-              size="lg"
-              onClick={() => setIsRunning(!isRunning)}
-              className="gradient-primary text-primary-foreground gap-2 min-w-[120px]"
-            >
-              {isRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              {isRunning ? "إيقاف" : "ابدأ"}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => {
-                setIsRunning(false);
-                setIsBreak(false);
-                setTimeLeft(session.duration_minutes * 60);
-              }}
-            >
-              <RotateCcw className="h-5 w-5" />
-            </Button>
+          <div>
+            <p className="text-[10px] text-muted-foreground font-medium">طول الجولة</p>
+            <p className="font-black text-sm">{Math.round(roundSeconds / 60)} د</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground font-medium">الاستراحة</p>
+            <p className="font-black text-sm">{BREAK_SECONDS / 60} د</p>
           </div>
         </CardContent>
       </Card>
 
-      {session.chapters && (
-        <Card>
-          <CardContent className="pt-4 text-center">
-            <p className="text-sm text-muted-foreground">الفصول: <span className="font-medium text-foreground">{session.chapters}</span></p>
-          </CardContent>
-        </Card>
-      )}
-
-      <Button
-        variant="destructive"
-        className="w-full gap-2"
-        onClick={endSession}
-      >
+      <Button variant="destructive" className="w-full gap-2 rounded-xl" onClick={endSession}>
         <Square className="h-4 w-4" />
-        إنهاء الجلسة وحفظ التقدم
+        إنهاء وحفظ التقدم
       </Button>
     </div>
   );
