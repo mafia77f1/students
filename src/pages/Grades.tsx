@@ -95,15 +95,15 @@ export default function Grades() {
         const num = val ? parseFloat(val) : null;
         const existing = grades.find((g) => g.subject === s && g.exam_type === activeExam && g.term === t);
         if (existing && (num == null || isNaN(num))) {
-          ops.push(supabase.from("student_grades").delete().eq("id", existing.id));
+          ops.push(Promise.resolve(supabase.from("student_grades").delete().eq("id", existing.id)));
         } else if (num != null && !isNaN(num)) {
           if (existing) {
-            ops.push(supabase.from("student_grades").update({ grade_value: num }).eq("id", existing.id));
+            ops.push(Promise.resolve(supabase.from("student_grades").update({ grade_value: num }).eq("id", existing.id)));
           } else {
-            ops.push(supabase.from("student_grades").insert({
+            ops.push(Promise.resolve(supabase.from("student_grades").insert({
               user_id: profile.id, subject: s, exam_type: activeExam, term: t,
               grade_value: num, max_grade: 100,
-            } as any));
+            } as any)));
           }
         }
       }
