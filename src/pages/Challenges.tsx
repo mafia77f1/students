@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame } from "lucide-react";
+import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame, Clock, Zap, BarChart3, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
@@ -42,6 +43,7 @@ interface UserOption { id: string; name: string; }
 
 export default function Challenges() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,6 +55,24 @@ export default function Challenges() {
   const [customDays, setCustomDays] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchUser, setSearchUser] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState<Challenge | null>(null);
+  const [detailsUsers, setDetailsUsers] = useState<{ challenger: any; challenged: any } | null>(null);
+
+  const isTeacher = profile?.role === "teacher";
+
+  const openDetails = async (c: Challenge) => {
+    setDetailsOpen(c);
+    setDetailsUsers(null);
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_url, total_hours, total_xp, level, role, country, grade")
+      .in("id", [c.challenger_id, c.challenged_id]);
+    if (data) {
+      const challenger = data.find((u: any) => u.id === c.challenger_id);
+      const challenged = data.find((u: any) => u.id === c.challenged_id);
+      setDetailsUsers({ challenger, challenged });
+    }
+  };
 
   const fetchChallenges = async () => {
     if (!profile) return;
