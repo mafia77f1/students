@@ -24,6 +24,7 @@ import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
 import TeachersList from "./pages/TeachersList";
 import NotFound from "./pages/NotFound";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const queryClient = new QueryClient();
 
@@ -31,16 +32,7 @@ function AppRoutes() {
   const { session, profile, loading } = useAuth();
   const [splashSeen, setSplashSeen] = useState(() => localStorage.getItem("splash_seen") === "1");
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-2xl gradient-primary mx-auto mb-3 animate-pulse glow-primary" />
-          <p className="text-muted-foreground text-sm">جاري التحميل...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen label="جاري تجهيز رحلتك..." />;
 
   if (!splashSeen) return <Splash onFinish={() => setSplashSeen(true)} />;
   if (!session) return <Auth />;

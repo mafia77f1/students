@@ -15,11 +15,13 @@ const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", 
 const durations = [
   { label: "15 د", value: 15, emoji: "⚡", desc: "جلسة سريعة" },
   { label: "25 د", value: 25, emoji: "🍅", desc: "بومودورو" },
+  { label: "30 د", value: 30, emoji: "⏰", desc: "ربع ساعة+" },
   { label: "45 د", value: 45, emoji: "📖", desc: "تركيز عميق" },
   { label: "60 د", value: 60, emoji: "🎯", desc: "ساعة كاملة" },
   { label: "90 د", value: 90, emoji: "🔥", desc: "ماراثون" },
-  { label: "120 د", value: 120, emoji: "🚀", desc: "أسطوري" },
 ];
+
+const totalHourPresets = [1, 2, 3, 4, 6, 8];
 
 interface Goal {
   id: number;
@@ -34,6 +36,7 @@ export default function StartStudy() {
   const [step, setStep] = useState(0);
   const [subject, setSubject] = useState("");
   const [duration, setDuration] = useState<number>(25);
+  const [targetHours, setTargetHours] = useState<number>(2);
   const [goals, setGoals] = useState<Goal[]>([{ id: 1, description: "" }]);
   const [loading, setLoading] = useState(false);
 
@@ -131,31 +134,73 @@ export default function StartStudy() {
           )}
 
           {step === 1 && (
-            <Card className="border-primary/10">
-              <CardContent className="pt-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="h-5 w-5 text-secondary" />
-                  <h3 className="font-bold">كم دقيقة بدك تذاكر؟</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {durations.map((d) => (
-                    <button
-                      key={d.value}
-                      onClick={() => setDuration(d.value)}
-                      className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                        duration === d.value
-                          ? "gradient-primary text-white border-transparent glow-primary scale-[1.03]"
-                          : "border-border bg-card hover:border-primary/40"
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{d.emoji}</div>
-                      <div className="font-black text-base">{d.label}</div>
-                      <div className={`text-[10px] ${duration === d.value ? "text-white/80" : "text-muted-foreground"}`}>{d.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-3">
+              <Card className="border-primary/10">
+                <CardContent className="pt-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="h-5 w-5 text-secondary" />
+                    <h3 className="font-bold">طول كل جولة تركيز</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {durations.map((d) => (
+                      <button
+                        key={d.value}
+                        onClick={() => setDuration(d.value)}
+                        className={`p-3 rounded-2xl border-2 text-center transition-all ${
+                          duration === d.value
+                            ? "gradient-primary text-white border-transparent glow-primary scale-[1.03]"
+                            : "border-border bg-card hover:border-primary/40"
+                        }`}
+                      >
+                        <div className="text-xl mb-0.5">{d.emoji}</div>
+                        <div className="font-black text-sm">{d.label}</div>
+                        <div className={`text-[9px] ${duration === d.value ? "text-white/80" : "text-muted-foreground"}`}>{d.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-3 text-center">
+                    بين كل جولة وجولة استراحة 2 دقيقة تلقائياً ☕
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-primary/10">
+                <CardContent className="pt-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Rocket className="h-5 w-5 text-primary" />
+                    <h3 className="font-bold">كم ساعة تنوي تذاكر هالمادة؟</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {totalHourPresets.map((h) => (
+                      <button
+                        key={h}
+                        onClick={() => setTargetHours(h)}
+                        className={`p-3 rounded-xl border-2 font-black text-sm transition-all ${
+                          targetHours === h
+                            ? "gradient-primary text-white border-transparent"
+                            : "border-border bg-card hover:border-primary/40"
+                        }`}
+                      >
+                        {h} ساعة
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-3">
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="أو اكتب عدد ساعات مخصص..."
+                      value={targetHours}
+                      onChange={(e) => setTargetHours(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="text-center font-bold"
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2 text-center">
+                    سنحتسب الجولات والاستراحات لك. تقريباً {Math.ceil((targetHours * 60) / duration)} جولة
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {step === 2 && (
@@ -215,8 +260,12 @@ export default function StartStudy() {
                     <span className="font-bold text-sm">{subject}</span>
                   </div>
                   <div className="glass rounded-xl p-3 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">المدة</span>
+                    <span className="text-xs text-muted-foreground">طول الجولة</span>
                     <span className="font-bold text-sm">{duration} دقيقة</span>
+                  </div>
+                  <div className="glass rounded-xl p-3 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">الهدف الكلي</span>
+                    <span className="font-bold text-sm">{targetHours} ساعة</span>
                   </div>
                   <div className="glass rounded-xl p-3 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">الأهداف</span>

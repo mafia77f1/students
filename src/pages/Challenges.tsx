@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame } from "lucide-react";
+import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame, Clock, Zap, BarChart3, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
@@ -42,6 +43,7 @@ interface UserOption { id: string; name: string; }
 
 export default function Challenges() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,6 +55,24 @@ export default function Challenges() {
   const [customDays, setCustomDays] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchUser, setSearchUser] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState<Challenge | null>(null);
+  const [detailsUsers, setDetailsUsers] = useState<{ challenger: any; challenged: any } | null>(null);
+
+  const isTeacher = profile?.role === "teacher";
+
+  const openDetails = async (c: Challenge) => {
+    setDetailsOpen(c);
+    setDetailsUsers(null);
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_url, total_hours, total_xp, level, role, country, grade")
+      .in("id", [c.challenger_id, c.challenged_id]);
+    if (data) {
+      const challenger = data.find((u: any) => u.id === c.challenger_id);
+      const challenged = data.find((u: any) => u.id === c.challenged_id);
+      setDetailsUsers({ challenger, challenged });
+    }
+  };
 
   const fetchChallenges = async () => {
     if (!profile) return;
@@ -66,9 +86,11 @@ export default function Challenges() {
 
   const searchUsers = async (query: string) => {
     if (query.length < 2) return;
+    // students-only challenges
     const { data } = await supabase
       .from("profiles").select("id, name")
       .neq("id", profile?.id || "")
+      .eq("role", "student")
       .ilike("name", `%${query}%`).limit(10);
     setUsers((data as UserOption[]) || []);
   };
@@ -141,7 +163,10 @@ export default function Challenges() {
     const st = statusStyle(c.status);
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className={`glass border-0 overflow-hidden card-hover ${c.status === "active" ? "glow-soft" : ""}`}>
+        <Card
+          onClick={() => openDetails(c)}
+          className={`glass border-0 overflow-hidden card-hover cursor-pointer ${c.status === "active" ? "glow-soft" : ""}`}
+        >
           <div className={`h-1.5 ${st.bar}`} />
           <CardContent className="pt-4 space-y-3">
             <div className="flex items-start justify-between gap-2">
@@ -165,7 +190,7 @@ export default function Challenges() {
             )}
 
             {showActions && (
-              <div className="flex gap-2">
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" className="flex-1 gradient-primary text-primary-foreground gap-1 rounded-xl glow-soft" onClick={() => acceptChallenge(c.id)}>
                   <CheckCircle className="h-4 w-4" /> قبول
                 </Button>
@@ -185,6 +210,24 @@ export default function Challenges() {
       </motion.div>
     );
   };
+
+  if (isTeacher) {
+    return (
+      <div className="max-w-lg mx-auto pt-12">
+        <Card className="glass border-0 text-center">
+          <CardContent className="py-12 space-y-3">
+            <div className="w-16 h-16 mx-auto rounded-2xl gradient-primary flex items-center justify-center glow-soft">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-lg font-black">التحديات للطلاب</h2>
+            <p className="text-sm text-muted-foreground">
+              صفحة التحديات مخصصة للطلاب فقط لتشجيع المنافسة الدراسية. كأستاذ، يمكنك متابعة طلابك من صفحة الحساب.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 max-w-lg mx-auto pb-4">
@@ -296,6 +339,85 @@ export default function Challenges() {
           pastChallenges.map(c => <ChallengeCard key={c.id} c={c} />)
         )}
       </div>
+
+      {/* Details dialog */}
+      <Dialog open={!!detailsOpen} onOpenChange={(o) => !o && setDetailsOpen(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">{detailsOpen?.title || detailsOpen?.subject}</DialogTitle>
+          </DialogHeader>
+          {detailsOpen && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs">
+                <Badge variant="outline" className={statusStyle(detailsOpen.status).badge}>
+                  {statusStyle(detailsOpen.status).label}
+                </Badge>
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {formatDuration(detailsOpen)}
+                </span>
+              </div>
+
+              {!detailsUsers ? (
+                <p className="text-center text-sm text-muted-foreground py-4">جاري التحميل...</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { u: detailsUsers.challenger, xp: detailsOpen.challenger_xp, label: "المُتحدي" },
+                    { u: detailsUsers.challenged, xp: detailsOpen.challenged_xp, label: "المُتحدى" },
+                  ].map((side, i) => {
+                    const isWinner = detailsOpen.winner_id === side.u?.id;
+                    return (
+                      <div key={i} className={`glass rounded-2xl p-3 text-center space-y-2 ${isWinner ? "ring-2 ring-amber-400" : ""}`}>
+                        <div className="relative inline-block">
+                          {side.u?.avatar_url ? (
+                            <img src={side.u.avatar_url} alt="" className="w-14 h-14 rounded-2xl object-cover mx-auto ring-2 ring-primary/30" />
+                          ) : (
+                            <div className="w-14 h-14 rounded-2xl mx-auto gradient-primary flex items-center justify-center text-white font-black text-lg">
+                              {side.u?.name?.[0] || "؟"}
+                            </div>
+                          )}
+                          {isWinner && <Trophy className="h-4 w-4 text-amber-500 absolute -top-1 -right-1" />}
+                        </div>
+                        <div>
+                          <p className="font-black text-sm truncate">{side.u?.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{side.label}</p>
+                        </div>
+                        <button
+                          onClick={() => { setDetailsOpen(null); navigate(`/user/${side.u.id}`); }}
+                          className="text-[10px] text-primary font-bold hover:underline"
+                        >
+                          عرض الملف ←
+                        </button>
+                        <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/40">
+                          <div>
+                            <Clock className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{Number(side.u?.total_hours || 0).toFixed(0)}</p>
+                            <p className="text-[8px] text-muted-foreground">ساعة</p>
+                          </div>
+                          <div>
+                            <Zap className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{side.u?.total_xp || 0}</p>
+                            <p className="text-[8px] text-muted-foreground">XP</p>
+                          </div>
+                          <div>
+                            <BarChart3 className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{side.u?.level || 1}</p>
+                            <p className="text-[8px] text-muted-foreground">المستوى</p>
+                          </div>
+                        </div>
+                        <div className="rounded-lg gradient-primary text-white py-1.5">
+                          <p className="text-base font-black">{side.xp || 0} <span className="text-[10px] opacity-80">XP</span></p>
+                          <p className="text-[9px] opacity-90">في هذا التحدي</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
