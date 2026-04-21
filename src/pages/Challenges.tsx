@@ -339,6 +339,85 @@ export default function Challenges() {
           pastChallenges.map(c => <ChallengeCard key={c.id} c={c} />)
         )}
       </div>
+
+      {/* Details dialog */}
+      <Dialog open={!!detailsOpen} onOpenChange={(o) => !o && setDetailsOpen(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">{detailsOpen?.title || detailsOpen?.subject}</DialogTitle>
+          </DialogHeader>
+          {detailsOpen && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs">
+                <Badge variant="outline" className={statusStyle(detailsOpen.status).badge}>
+                  {statusStyle(detailsOpen.status).label}
+                </Badge>
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> {formatDuration(detailsOpen)}
+                </span>
+              </div>
+
+              {!detailsUsers ? (
+                <p className="text-center text-sm text-muted-foreground py-4">جاري التحميل...</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { u: detailsUsers.challenger, xp: detailsOpen.challenger_xp, label: "المُتحدي" },
+                    { u: detailsUsers.challenged, xp: detailsOpen.challenged_xp, label: "المُتحدى" },
+                  ].map((side, i) => {
+                    const isWinner = detailsOpen.winner_id === side.u?.id;
+                    return (
+                      <div key={i} className={`glass rounded-2xl p-3 text-center space-y-2 ${isWinner ? "ring-2 ring-amber-400" : ""}`}>
+                        <div className="relative inline-block">
+                          {side.u?.avatar_url ? (
+                            <img src={side.u.avatar_url} alt="" className="w-14 h-14 rounded-2xl object-cover mx-auto ring-2 ring-primary/30" />
+                          ) : (
+                            <div className="w-14 h-14 rounded-2xl mx-auto gradient-primary flex items-center justify-center text-white font-black text-lg">
+                              {side.u?.name?.[0] || "؟"}
+                            </div>
+                          )}
+                          {isWinner && <Trophy className="h-4 w-4 text-amber-500 absolute -top-1 -right-1" />}
+                        </div>
+                        <div>
+                          <p className="font-black text-sm truncate">{side.u?.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{side.label}</p>
+                        </div>
+                        <button
+                          onClick={() => { setDetailsOpen(null); navigate(`/user/${side.u.id}`); }}
+                          className="text-[10px] text-primary font-bold hover:underline"
+                        >
+                          عرض الملف ←
+                        </button>
+                        <div className="grid grid-cols-3 gap-1 pt-1 border-t border-border/40">
+                          <div>
+                            <Clock className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{Number(side.u?.total_hours || 0).toFixed(0)}</p>
+                            <p className="text-[8px] text-muted-foreground">ساعة</p>
+                          </div>
+                          <div>
+                            <Zap className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{side.u?.total_xp || 0}</p>
+                            <p className="text-[8px] text-muted-foreground">XP</p>
+                          </div>
+                          <div>
+                            <BarChart3 className="h-3 w-3 mx-auto text-muted-foreground mb-0.5" />
+                            <p className="text-[10px] font-black">{side.u?.level || 1}</p>
+                            <p className="text-[8px] text-muted-foreground">المستوى</p>
+                          </div>
+                        </div>
+                        <div className="rounded-lg gradient-primary text-white py-1.5">
+                          <p className="text-base font-black">{side.xp || 0} <span className="text-[10px] opacity-80">XP</span></p>
+                          <p className="text-[9px] opacity-90">في هذا التحدي</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
