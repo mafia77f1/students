@@ -8,6 +8,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Play, Pause, Square, RotateCcw, Coffee, BookOpen, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import SessionSummary from "@/components/SessionSummary";
+import { getTarget } from "@/lib/study-targets";
 
 const BREAK_SECONDS = 2 * 60; // 2-minute break between rounds
 
