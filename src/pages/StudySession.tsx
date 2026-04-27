@@ -24,6 +24,11 @@ export default function StudySession() {
   const [isBreak, setIsBreak] = useState(false);
   const [round, setRound] = useState(1);
   const [studiedSeconds, setStudiedSeconds] = useState(0); // total focus seconds completed
+  const [breakSeconds, setBreakSeconds] = useState(0);
+  const [summary, setSummary] = useState<null | {
+    focusMin: number; breakMin: number; rounds: number; xp: number;
+    targetMin: number; doneSoFar: number;
+  }>(null);
   const startTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
