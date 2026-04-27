@@ -44,13 +44,13 @@ export default function StudySession() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           if (!isBreak) {
-            // finished a focus round
             toast.success("أحسنت! استراحة قصيرة ☕");
             setStudiedSeconds((s) => s + roundSeconds);
             setIsBreak(true);
             return BREAK_SECONDS;
           } else {
             toast.info("الاستراحة انتهت! يلا نكمل 💪");
+            setBreakSeconds((s) => s + BREAK_SECONDS);
             setIsBreak(false);
             setRound((r) => r + 1);
             return roundSeconds;
@@ -73,11 +73,13 @@ export default function StudySession() {
 
   const endSession = async () => {
     if (!profile || !session) return;
-    // include current ongoing round if user ended mid-focus
+    setIsRunning(false);
     const ongoing = !isBreak ? roundSeconds - timeLeft : 0;
     const totalFocusSec = studiedSeconds + ongoing;
     const minutesStudied = Math.max(0, Math.round(totalFocusSec / 60));
+    const breakMin = Math.round(breakSeconds / 60);
     const xp = minutesStudied * 2;
+    const roundsDone = round - 1 + (ongoing > 0 ? 1 : 0);
 
     await supabase.from("study_sessions").update({
       ended_at: new Date().toISOString(),
@@ -92,14 +94,43 @@ export default function StudySession() {
 
     await refreshProfile();
 
-    const h = Math.floor(minutesStudied / 60);
-    const m = minutesStudied % 60;
-    const timeStr = h > 0 ? `${h} ساعة ${m} دقيقة` : `${m} دقيقة`;
-    toast.success(`أكملت ${session.subject} في ${timeStr} • +${xp} XP 🎉`, { duration: 5000 });
-    navigate("/");
+    // Compute total minutes done so far for this subject (sum of completed sessions)
+    const t = getTarget(profile.id, session.subject);
+    const targetMin = t?.targetMinutes || 120;
+    const { data: rows } = await supabase
+      .from("study_sessions")
+      .select("duration_minutes, xp_earned")
+      .eq("user_id", profile.id)
+      .eq("subject", session.subject)
+      .not("ended_at", "is", null);
+    const doneSoFar = (rows || []).reduce((acc: number, r: any) => acc + (r.xp_earned ? r.xp_earned / 2 : 0), 0);
+
+    setSummary({
+      focusMin: minutesStudied,
+      breakMin,
+      rounds: Math.max(1, roundsDone),
+      xp,
+      targetMin,
+      doneSoFar,
+    });
   };
 
   if (!session) return <div className="text-center py-10 text-muted-foreground">جاري التحميل...</div>;
+
+  if (summary) {
+    return (
+      <SessionSummary
+        subject={session.subject}
+        focusMinutes={summary.focusMin}
+        breakMinutes={summary.breakMin}
+        rounds={summary.rounds}
+        xpEarned={summary.xp}
+        targetMinutes={summary.targetMin}
+        doneSoFarMinutes={summary.doneSoFar}
+        onContinue={() => navigate(`/start-study?subject=${encodeURIComponent(session.subject)}`)}
+      />
+    );
+  }
 
   const completedMinutes = Math.round((studiedSeconds + (!isBreak ? roundSeconds - timeLeft : 0)) / 60);
 
