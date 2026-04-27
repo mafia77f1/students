@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { BookOpen, Target, Plus, Trash2, Rocket, ArrowRight, ArrowLeft, Check, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { setTarget, getTarget } from "@/lib/study-targets";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
@@ -33,12 +34,21 @@ const stepTitles = ["اختر المادة", "حدد المدة", "ضع أهدا
 export default function StartStudy() {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [subject, setSubject] = useState("");
+  const [params] = useSearchParams();
+  const resumeSubject = params.get("subject") || "";
+  const [step, setStep] = useState(resumeSubject ? 1 : 0);
+  const [subject, setSubject] = useState(resumeSubject);
   const [duration, setDuration] = useState<number>(25);
   const [targetHours, setTargetHours] = useState<number>(2);
   const [goals, setGoals] = useState<Goal[]>([{ id: 1, description: "" }]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (resumeSubject && profile) {
+      const t = getTarget(profile.id, resumeSubject);
+      if (t) setTargetHours(Math.max(1, Math.round(t.targetMinutes / 60)));
+    }
+  }, [resumeSubject, profile]);
 
   const addGoal = () => setGoals([...goals, { id: Date.now(), description: "" }]);
   const removeGoal = (id: number) => setGoals(goals.filter((g) => g.id !== id));
@@ -70,6 +80,11 @@ export default function StartStudy() {
 
     setLoading(false);
     if (session) {
+      setTarget(profile.id, subject, {
+        targetMinutes: targetHours * 60,
+        lastSessionId: (session as any).id,
+        lastUpdated: Date.now(),
+      });
       toast.success("يلا نذاكر 💪");
       navigate(`/study-session/${(session as any).id}`);
     }
