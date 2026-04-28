@@ -127,7 +127,7 @@ export default function StudySession() {
     }).eq("id", profile.id);
 
     await refreshProfile();
-
+    clearResume(profile.id, session.subject);
     // Compute total minutes done so far for this subject (sum of completed sessions)
     const t = getTarget(profile.id, session.subject);
     const targetMin = t?.targetMinutes || 120;
