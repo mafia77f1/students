@@ -1,22 +1,87 @@
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
-import { Clock, Zap, Play, Star, BarChart3, Sparkles, BookOpen, GraduationCap, ExternalLink, Trophy } from "lucide-react";
+import {
+  Clock, Zap, Play, Star, BarChart3, Sparkles, BookOpen, GraduationCap,
+  ExternalLink, Trophy, Search, Download, History, Coffee, Flame, TrendingUp,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
+import { listTargets, getLastBook, setLastBook } from "@/lib/study-targets";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Sess {
+  subject: string;
+  duration_minutes: number;
+  xp_earned: number | null;
+  ended_at: string | null;
+  started_at: string;
+}
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const [sessions, setSessions] = useState<Sess[]>([]);
+  const [bookSearch, setBookSearch] = useState("");
+  const [lastBook, setLastBookState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profile) return;
+    setLastBookState(getLastBook(profile.id));
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    supabase
+      .from("study_sessions")
+      .select("subject,duration_minutes,xp_earned,ended_at,started_at")
+      .eq("user_id", profile.id)
+      .gte("started_at", sevenDaysAgo.toISOString())
+      .then(({ data }) => setSessions((data as any[]) || []));
+  }, [profile]);
 
   if (!profile) return null;
 
   const isTeacher = profile.role === "teacher";
   const lvl = getLevelInfo(profile.total_xp || 0);
   const LevelIcon = lvl.icon;
-  const books = (profile.subjects || []).map((s) => getBookFor(s, profile.grade));
+  const subjectsList = profile.subjects || [];
+  const targets = useMemo(() => (profile ? listTargets(profile.id, subjectsList) : {}), [profile, subjectsList]);
+
+  // minutes per subject from sessions (xp/2 ≈ minutes; fallback duration_minutes if no xp)
+  const minutesBySubject = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const s of sessions) {
+      if (!s.ended_at) continue;
+      const min = s.xp_earned ? s.xp_earned / 2 : 0;
+      m[s.subject] = (m[s.subject] || 0) + min;
+    }
+    return m;
+  }, [sessions]);
+
+  // Weekly stats
+  const weekStats = useMemo(() => {
+    const ended = sessions.filter((s) => s.ended_at);
+    const focusMin = ended.reduce((a, s) => a + (s.xp_earned ? s.xp_earned / 2 : 0), 0);
+    const xp = ended.reduce((a, s) => a + (s.xp_earned || 0), 0);
+    const breakMin = ended.length * 2; // approx (one break / session)
+    const top: Record<string, number> = {};
+    ended.forEach((s) => { top[s.subject] = (top[s.subject] || 0) + (s.xp_earned ? s.xp_earned / 2 : 0); });
+    const topArr = Object.entries(top).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    return { focusMin: Math.round(focusMin), breakMin, xp, topArr, sessions: ended.length };
+  }, [sessions]);
+
+  const books = subjectsList.map((s) => getBookFor(s, profile.grade));
+  const filteredBooks = books.filter((b) =>
+    b.subject.toLowerCase().includes(bookSearch.trim().toLowerCase())
+  );
+
+  const fmt = (m: number) => {
+    const h = Math.floor(m / 60), mm = Math.round(m % 60);
+    return h > 0 ? `${h}س ${mm}د` : `${mm}د`;
+  };
 
   return (
     <div className="space-y-4 max-w-lg mx-auto">
@@ -34,11 +99,7 @@ export default function Dashboard() {
                   مرحباً، {profile.name?.split(" ")[0] || (isTeacher ? "أستاذ" : "بطل")}
                 </h1>
                 <p className="text-sm opacity-90 mt-1 flex items-center gap-1.5">
-                  {isTeacher ? (
-                    <><Sparkles className="h-3.5 w-3.5" /> أستاذ</>
-                  ) : (
-                    <><LevelIcon className="h-3.5 w-3.5" /> المستوى {lvl.level}</>
-                  )}
+                  {isTeacher ? <><Sparkles className="h-3.5 w-3.5" /> أستاذ</> : <><LevelIcon className="h-3.5 w-3.5" /> المستوى {lvl.level}</>}
                 </p>
               </div>
               {profile.avatar_url ? (
@@ -57,26 +118,15 @@ export default function Dashboard() {
                   <span className="font-black">{profile.total_xp - lvl.xpForCurrent}/{lvl.xpForNext - lvl.xpForCurrent} XP</span>
                 </div>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${lvl.progress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-white rounded-full shadow-lg"
-                  />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${lvl.progress}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }} className="h-full bg-white rounded-full shadow-lg" />
                 </div>
               </div>
             )}
 
-            <Button
-              onClick={() => navigate(isTeacher ? "/profile" : "/start-study")}
-              className="w-full bg-white text-primary hover:bg-white/90 border-0 gap-2 font-black h-12 rounded-xl shadow-lg"
-              size="lg"
-            >
-              {isTeacher ? (
-                <><Star className="h-5 w-5" /> عرض التقييمات والكفاءة</>
-              ) : (
-                <><Play className="h-5 w-5 fill-primary" /> ابدأ الدراسة الآن</>
-              )}
+            <Button onClick={() => navigate(isTeacher ? "/profile" : "/start-study")}
+              className="w-full bg-white text-primary hover:bg-white/90 border-0 gap-2 font-black h-12 rounded-xl shadow-lg" size="lg">
+              {isTeacher ? <><Star className="h-5 w-5" /> عرض التقييمات</> : <><Play className="h-5 w-5 fill-primary" /> ابدأ الدراسة</>}
             </Button>
           </div>
         </div>
@@ -86,14 +136,14 @@ export default function Dashboard() {
       <div className="grid grid-cols-3 gap-2.5">
         {(isTeacher
           ? [
-              { label: "التقييم", value: "⭐", icon: Star, gradient: "from-yellow-500 to-amber-400" },
-              { label: "XP", value: profile.total_xp, icon: Zap, gradient: "from-violet-500 to-purple-500" },
-              { label: "المستوى", value: profile.level, icon: BarChart3, gradient: "from-cyan-500 to-blue-500" },
+              { label: "التقييم", value: "⭐", icon: Star, gradient: "from-primary to-primary-glow" },
+              { label: "XP", value: profile.total_xp, icon: Zap, gradient: "from-primary to-secondary" },
+              { label: "المستوى", value: profile.level, icon: BarChart3, gradient: "from-secondary to-secondary-glow" },
             ]
           : [
-              { label: "ساعات", value: `${Number(profile.total_hours).toFixed(0)}`, icon: Clock, gradient: "from-cyan-500 to-blue-500" },
-              { label: "XP", value: profile.total_xp, icon: Zap, gradient: "from-violet-500 to-purple-500" },
-              { label: `المستوى`, value: lvl.level, icon: LevelIcon, gradient: lvl.color },
+              { label: "ساعات", value: `${Number(profile.total_hours).toFixed(0)}`, icon: Clock, gradient: "from-secondary to-secondary-glow" },
+              { label: "XP", value: profile.total_xp, icon: Zap, gradient: "from-primary to-primary-glow" },
+              { label: `المستوى`, value: lvl.level, icon: LevelIcon, gradient: "from-primary to-secondary" },
             ]
         ).map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06 }}>
@@ -113,24 +163,113 @@ export default function Dashboard() {
       {/* Quick links: Grades + Leaderboard */}
       {!isTeacher && (
         <div className="grid grid-cols-2 gap-2.5">
-          <button onClick={() => navigate("/grades")} className="group relative overflow-hidden rounded-2xl p-3.5 text-right text-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-500">
+          <button onClick={() => navigate("/grades")} className="group relative overflow-hidden rounded-2xl p-3.5 text-right text-white shadow-md bg-gradient-to-br from-primary to-primary-glow">
             <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:scale-110 transition" />
             <GraduationCap className="h-5 w-5 mb-1.5" />
             <p className="font-black text-sm">الدرجات</p>
             <p className="text-[10px] opacity-90">إعفاء و وزاري</p>
           </button>
-          <button onClick={() => navigate("/leaderboard")} className="group relative overflow-hidden rounded-2xl p-3.5 text-right text-white shadow-md bg-gradient-to-br from-amber-500 to-orange-500">
+          <button onClick={() => navigate("/leaderboard")} className="group relative overflow-hidden rounded-2xl p-3.5 text-right text-white shadow-md bg-gradient-to-br from-secondary to-secondary-glow">
             <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:scale-110 transition" />
             <Trophy className="h-5 w-5 mb-1.5" />
-            <p className="font-black text-sm">لوحة الصدارة</p>
-            <p className="text-[10px] opacity-90">رتّب نفسك بين الأبطال</p>
+            <p className="font-black text-sm">الصدارة</p>
+            <p className="text-[10px] opacity-90">ترتيب الأبطال</p>
           </button>
         </div>
       )}
 
+      {/* Weekly Stats */}
+      {!isTeacher && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <Card className="border-border/50 overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-black text-sm flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                    <TrendingUp className="h-4 w-4 text-white" />
+                  </div>
+                  هذا الأسبوع
+                </h2>
+                <span className="text-[10px] text-muted-foreground font-bold">{weekStats.sessions} جلسة</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
+                  <Flame className="h-4 w-4 text-primary mx-auto mb-1" />
+                  <p className="text-sm font-black">{fmt(weekStats.focusMin)}</p>
+                  <p className="text-[9px] text-muted-foreground">تركيز</p>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
+                  <Coffee className="h-4 w-4 text-secondary mx-auto mb-1" />
+                  <p className="text-sm font-black">{fmt(weekStats.breakMin)}</p>
+                  <p className="text-[9px] text-muted-foreground">استراحات</p>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
+                  <Zap className="h-4 w-4 text-primary mx-auto mb-1" />
+                  <p className="text-sm font-black">+{weekStats.xp}</p>
+                  <p className="text-[9px] text-muted-foreground">XP</p>
+                </div>
+              </div>
+              {weekStats.topArr.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground">أفضل المواد</p>
+                  {weekStats.topArr.map(([sub, min], i) => (
+                    <div key={sub} className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-md bg-primary/10 text-primary text-[10px] font-black flex items-center justify-center">{i + 1}</span>
+                      <span className="flex-1 text-xs font-bold truncate">{sub}</span>
+                      <span className="text-[10px] text-muted-foreground font-bold">{fmt(min)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Per-subject progress */}
+      {!isTeacher && subjectsList.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <h2 className="font-black text-sm mb-2 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-md">
+              <BarChart3 className="h-4 w-4 text-white" />
+            </div>
+            تقدمك بالمواد
+          </h2>
+          <div className="space-y-2">
+            {subjectsList.map((sub) => {
+              const target = targets[sub]?.targetMinutes || 240; // default 4h
+              const done = Math.round(minutesBySubject[sub] || 0);
+              const pct = Math.min(100, Math.round((done / target) * 100));
+              const rounds = Math.floor(done / 25);
+              return (
+                <Card key={sub} className="border-border/50">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="font-bold text-sm">{sub}</p>
+                      <span className="text-[10px] font-black text-primary">{pct}%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
+                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full" transition={{ duration: 0.6 }} />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{fmt(done)} / {fmt(target)} • {rounds} جولة</span>
+                      <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] gap-1 text-primary"
+                        onClick={() => navigate(`/start-study?subject=${encodeURIComponent(sub)}`)}>
+                        <Play className="h-3 w-3" /> {pct >= 100 ? "جلسة جديدة" : "متابعة"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
       {/* Books for grade */}
       {!isTeacher && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-black text-sm flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shadow-md">
@@ -141,36 +280,59 @@ export default function Dashboard() {
             <span className="text-[10px] text-muted-foreground font-bold">{books.length} كتاب</span>
           </div>
 
+          {/* Search */}
+          {books.length > 0 && (
+            <div className="relative mb-2.5">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input value={bookSearch} onChange={(e) => setBookSearch(e.target.value)}
+                placeholder="ابحث عن كتاب..." className="pr-9 h-10 rounded-xl bg-card text-sm" />
+            </div>
+          )}
+
+          {/* Last opened */}
+          {lastBook && (
+            <a
+              href={getBookFor(lastBook, profile.grade).href}
+              target="_blank" rel="noreferrer"
+              onClick={() => setLastBook(profile.id, lastBook)}
+              className="flex items-center gap-2 mb-2.5 p-2.5 rounded-xl bg-primary/5 border border-primary/20 hover:bg-primary/10 transition"
+            >
+              <History className="h-4 w-4 text-primary" />
+              <span className="text-xs font-bold flex-1">آخر كتاب: {lastBook}</span>
+              <ExternalLink className="h-3.5 w-3.5 text-primary" />
+            </a>
+          )}
+
           {books.length === 0 ? (
             <Card className="border-border/50">
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
                 لم تختر مواد بعد. عدّل ملفك من الإعدادات.
               </CardContent>
             </Card>
+          ) : filteredBooks.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-6 text-center text-xs text-muted-foreground">
+                لا يوجد نتائج لـ "{bookSearch}"
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid grid-cols-2 gap-2.5">
-              {books.map((b, i) => (
-                <motion.a
-                  key={b.subject}
-                  href={b.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * i }}
-                  className="group relative overflow-hidden rounded-2xl p-3 bg-card border border-border/50 hover:border-primary/40 hover:shadow-lg transition-all"
-                >
+              {filteredBooks.map((b, i) => (
+                <motion.div key={b.subject} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}
+                  className="group relative overflow-hidden rounded-2xl p-3 bg-card border border-border/50 hover:border-primary/40 hover:shadow-lg transition-all">
                   <div className={`absolute inset-0 opacity-10 bg-gradient-to-br ${b.color} group-hover:opacity-20 transition`} />
                   <div className="relative">
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${b.color} flex items-center justify-center text-xl shadow-sm mb-2`}>
                       {b.emoji}
                     </div>
-                    <p className="font-black text-xs leading-tight">{b.subject}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-                      <ExternalLink className="h-2.5 w-2.5" /> فتح الكتاب
-                    </p>
+                    <p className="font-black text-xs leading-tight mb-2">{b.subject}</p>
+                    <a href={b.href} target="_blank" rel="noreferrer"
+                      onClick={() => { setLastBook(profile.id, b.subject); setLastBookState(b.subject); }}
+                      className="flex items-center justify-center gap-1 w-full h-8 rounded-lg bg-primary/10 text-primary text-[10px] font-bold hover:bg-primary/20 transition">
+                      <Download className="h-3 w-3" /> فتح PDF
+                    </a>
                   </div>
-                </motion.a>
+                </motion.div>
               ))}
             </div>
           )}
