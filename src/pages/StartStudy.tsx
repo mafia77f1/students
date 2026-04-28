@@ -9,7 +9,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { BookOpen, Target, Plus, Trash2, Rocket, ArrowRight, ArrowLeft, Check, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { setTarget, getTarget } from "@/lib/study-targets";
+import { setTarget, getTarget, getResume } from "@/lib/study-targets";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
 
@@ -47,8 +47,14 @@ export default function StartStudy() {
     if (resumeSubject && profile) {
       const t = getTarget(profile.id, resumeSubject);
       if (t) setTargetHours(Math.max(1, Math.round(t.targetMinutes / 60)));
+      // If user has saved resume state for this subject -> jump straight in
+      const r = getResume(profile.id, resumeSubject);
+      if (r?.sessionId) {
+        toast.success("نكمل من حيث وقفت 🎯");
+        navigate(`/study-session/${r.sessionId}`, { replace: true });
+      }
     }
-  }, [resumeSubject, profile]);
+  }, [resumeSubject, profile, navigate]);
 
   const addGoal = () => setGoals([...goals, { id: Date.now(), description: "" }]);
   const removeGoal = (id: number) => setGoals(goals.filter((g) => g.id !== id));

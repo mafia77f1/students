@@ -155,6 +155,16 @@ export default function StudyRoom() {
     }
   }, [now, pomo, isCreator]);
 
+  // Periodic heartbeat: creator re-broadcasts state every 5s so any
+  // late/disconnected device automatically re-syncs round + remaining time.
+  useEffect(() => {
+    if (!isCreator) return;
+    const t = setInterval(() => {
+      channelRef.current?.send({ type: "broadcast", event: "state", payload: pomo });
+    }, 5000);
+    return () => clearInterval(t);
+  }, [isCreator, pomo]);
+
   useEffect(() => {
     chatRef.current?.scrollTo(0, chatRef.current.scrollHeight);
   }, [messages]);

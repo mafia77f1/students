@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { GraduationCap, Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import appIcon from "@/assets/app-icon.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -35,53 +37,99 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md shadow-xl border-primary/20 glow-primary">
-        <CardHeader className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-2xl font-bold gradient-text">طلاب</CardTitle>
-          <p className="text-muted-foreground text-sm">
-            {isLogin ? "سجل دخولك لمتابعة الدراسة" : "أنشئ حسابك وابدأ رحلة التعلم"}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name">الاسم</Label>
-                <div className="relative">
-                  <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="name" placeholder="اسمك الكامل" value={name} onChange={(e) => setName(e.target.value)} className="pr-10" required />
-                </div>
+    <div className="min-h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+      {/* Background glow blobs - app feel */}
+      <motion.div
+        className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/25 blur-3xl"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/25 blur-3xl"
+        animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 7, repeat: Infinity }}
+      />
+
+      {/* App-like hero */}
+      <div className="pt-[max(2rem,env(safe-area-inset-top))] pb-6 px-6 text-center relative z-10">
+        <motion.img
+          src={appIcon}
+          alt="طلاب"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          className="w-24 h-24 mx-auto rounded-3xl object-cover mb-4"
+          style={{ boxShadow: "0 0 50px hsl(var(--secondary) / 0.5)" }}
+        />
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-3xl font-black gradient-text mb-1"
+        >
+          طلاب
+        </motion.h1>
+        <p className="text-xs text-muted-foreground">
+          {isLogin ? "أهلاً بعودتك ✨" : "ابدأ رحلتك الدراسية"}
+        </p>
+      </div>
+
+      {/* App-like bottom sheet form */}
+      <motion.div
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, type: "spring", damping: 20 }}
+        className="flex-1 bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2rem] px-6 pt-7 pb-[max(2rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl"
+      >
+        <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
+
+        <h2 className="text-xl font-black mb-1">
+          {isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"}
+        </h2>
+        <p className="text-xs text-muted-foreground mb-5">
+          {isLogin ? "ادخل بياناتك للمتابعة" : "املأ معلوماتك للبدء"}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {!isLogin && (
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs font-bold">الاسم</Label>
+              <div className="relative">
+                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="name" placeholder="اسمك الكامل" value={name} onChange={(e) => setName(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required />
               </div>
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-bold">البريد الإلكتروني</Label>
+            <div className="relative">
+              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="email" type="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-xs font-bold">كلمة المرور</Label>
+            <div className="relative">
+              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required minLength={6} />
+            </div>
+          </div>
+          <Button type="submit" className="w-full h-13 py-6 gradient-primary text-white border-0 rounded-2xl font-black gap-2 glow-primary mt-2" disabled={loading}>
+            {loading ? "جاري التحميل..." : (
+              <>
+                {isLogin ? "دخول" : "إنشاء حساب"} <ArrowLeft className="h-4 w-4" />
+              </>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10" required />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" required minLength={6} />
-              </div>
-            </div>
-            <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
-              {loading ? "جاري التحميل..." : isLogin ? "تسجيل الدخول" : "إنشاء حساب"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
-            <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-primary hover:underline">
-              {isLogin ? "ليس لديك حساب؟ أنشئ واحداً" : "لديك حساب؟ سجل الدخول"}
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+          </Button>
+        </form>
+
+        <button
+          onClick={() => setIsLogin(!isLogin)}
+          className="block mx-auto mt-5 text-xs text-muted-foreground"
+        >
+          {isLogin ? <>ليس لديك حساب؟ <span className="text-primary font-bold">أنشئ حساب</span></> : <>لديك حساب؟ <span className="text-primary font-bold">سجل دخول</span></>}
+        </button>
+      </motion.div>
     </div>
   );
 }
