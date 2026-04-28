@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Trophy, Users, Rocket, ArrowLeft } from "lucide-react";
+import appIcon from "@/assets/app-icon.png";
 
 const features = [
   { icon: Rocket, title: "ادرس بتركيز", desc: "جلسات بومودورو ذكية مع أهداف واضحة", color: "from-violet-500 to-fuchsia-500" },
@@ -40,9 +41,12 @@ export default function Splash({ onFinish }: { onFinish: () => void }) {
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
           className="relative mb-6"
         >
-          <div className="w-28 h-28 rounded-[2rem] gradient-mesh flex items-center justify-center text-5xl font-black text-white glow-primary animate-pulse-glow">
-            ط
-          </div>
+          <img
+            src={appIcon}
+            alt="طلاب"
+            className="w-32 h-32 rounded-[2rem] object-cover shadow-2xl"
+            style={{ boxShadow: "0 0 60px hsl(var(--secondary) / 0.6), 0 0 100px hsl(var(--primary) / 0.3)" }}
+          />
           <motion.div
             className="absolute -top-2 -right-2"
             animate={{ rotate: 360 }}
