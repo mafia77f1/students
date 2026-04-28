@@ -9,7 +9,7 @@ import { Play, Pause, Square, RotateCcw, Coffee, BookOpen, Timer } from "lucide-
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SessionSummary from "@/components/SessionSummary";
-import { getTarget } from "@/lib/study-targets";
+import { getTarget, setResume, getResume, clearResume } from "@/lib/study-targets";
 
 const BREAK_SECONDS = 2 * 60; // 2-minute break between rounds
 
@@ -38,10 +38,39 @@ export default function StudySession() {
         setSession(data);
         const r = (data as any).duration_minutes * 60;
         setRoundSeconds(r);
+        // Try to resume previous state for this subject
+        if (profile) {
+          const prev = getResume(profile.id, (data as any).subject);
+          if (prev && prev.sessionId === (data as any).id) {
+            setRound(prev.round);
+            setIsBreak(prev.isBreak);
+            setTimeLeft(prev.timeLeft);
+            setStudiedSeconds(prev.studiedSeconds);
+            setBreakSeconds(prev.breakSeconds);
+            toast.info(`استكملنا من الجولة ${prev.round} 🎯`);
+            return;
+          }
+        }
         setTimeLeft(r);
       }
     });
-  }, [id]);
+  }, [id, profile]);
+
+  // Persist resume state on every change (so user can come back exactly here)
+  useEffect(() => {
+    if (!profile || !session || !roundSeconds) return;
+    setResume(profile.id, {
+      subject: session.subject,
+      sessionId: session.id,
+      round,
+      roundSeconds,
+      timeLeft,
+      isBreak,
+      studiedSeconds,
+      breakSeconds,
+      savedAt: Date.now(),
+    });
+  }, [profile, session, round, roundSeconds, timeLeft, isBreak, studiedSeconds, breakSeconds]);
 
   useEffect(() => {
     if (!isRunning) return;
