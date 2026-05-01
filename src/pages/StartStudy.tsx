@@ -11,7 +11,7 @@ import { BookOpen, Target, Plus, Trash2, Rocket, ArrowRight, ArrowLeft, Check, C
 import { motion, AnimatePresence } from "framer-motion";
 import { setTarget, getTarget, getResume } from "@/lib/study-targets";
 
-const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "التاريخ", "الجغرافيا", "الحاسوب", "البرمجة", "الطب", "الهندسة", "أخرى"];
+const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
 
 const durations = [
   { label: "15 د", value: 15, emoji: "⚡", desc: "جلسة سريعة" },
