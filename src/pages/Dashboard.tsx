@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
-import { listTargets, getLastBook, setLastBook, setTarget, getTarget } from "@/lib/study-targets";
+import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume } from "@/lib/study-targets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -58,7 +58,6 @@ export default function Dashboard() {
 
   const isTeacher = profile?.role === "teacher";
   const lvl = getLevelInfo(profile?.total_xp || 0);
-  const LevelIcon = lvl.icon;
   const subjectsList = profile?.subjects || [];
   const targets = useMemo(
     () => (profile ? listTargets(profile.id, subjectsList) : {}),
@@ -143,7 +142,7 @@ export default function Dashboard() {
                   مرحباً، {profile.name?.split(" ")[0] || (isTeacher ? "أستاذ" : "بطل")}
                 </h1>
                 <p className="text-sm opacity-90 mt-1 flex items-center gap-1.5">
-                  {isTeacher ? <><Sparkles className="h-3.5 w-3.5" /> أستاذ</> : <><LevelIcon className="h-3.5 w-3.5" /> المستوى {lvl.level}</>}
+                  {isTeacher ? <><Sparkles className="h-3.5 w-3.5" /> أستاذ</> : <><span className="text-base leading-none">{lvl.emoji}</span> {lvl.title} • المستوى {lvl.level}</>}
                 </p>
               </div>
               {profile.avatar_url ? (
@@ -187,7 +186,7 @@ export default function Dashboard() {
           : [
               { label: "ساعات", value: `${Number(profile.total_hours).toFixed(0)}`, icon: Clock, gradient: "from-secondary to-secondary-glow" },
               { label: "XP", value: profile.total_xp, icon: Zap, gradient: "from-primary to-primary-glow" },
-              { label: `المستوى`, value: lvl.level, icon: LevelIcon, gradient: "from-primary to-secondary" },
+              { label: `المستوى`, value: lvl.level, icon: BarChart3, gradient: "from-primary to-secondary" },
             ]
         ).map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06 }}>
@@ -301,7 +300,12 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span>{fmt(done)} / {fmt(target)} • {rounds} جولة • باقي {fmt(remain)}</span>
                       <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] gap-1 text-primary"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/start-study?subject=${encodeURIComponent(sub)}`); }}>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const r = getResume(profile.id, sub);
+                          if (r?.sessionId) navigate(`/study-session/${r.sessionId}`);
+                          else navigate(`/start-study?subject=${encodeURIComponent(sub)}`);
+                        }}>
                         <Play className="h-3 w-3" /> {pct >= 100 ? "جلسة جديدة" : "متابعة"}
                       </Button>
                     </div>

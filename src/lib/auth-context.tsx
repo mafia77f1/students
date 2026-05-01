@@ -17,6 +17,9 @@ export interface Profile {
   role: string;
   onboarding_completed: boolean;
   avatar_url: string | null;
+  is_premium?: boolean;
+  premium_until?: string | null;
+  premium_seen?: boolean;
 }
 
 interface AuthContextType {
