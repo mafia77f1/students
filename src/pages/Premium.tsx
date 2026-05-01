@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, X, Sparkles, BarChart3, UserCog, Image as ImageIcon, Zap, ShieldOff, BadgeCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Crown, Check, X, Sparkles, BarChart3, UserCog, Image as ImageIcon, Zap, ShieldOff, BadgeCheck, KeyRound, PartyPopper } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
