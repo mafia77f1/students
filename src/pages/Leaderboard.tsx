@@ -41,6 +41,9 @@ export default function Leaderboard() {
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
+      {/* Search */}
+      <UserSearch />
+
       {/* Header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl gradient-primary glow-primary">
