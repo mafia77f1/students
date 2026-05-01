@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Globe, MapPin, Crown } from "lucide-react";
 import { motion } from "framer-motion";
+import { UserSearch } from "@/components/UserSearch";
 
 const rankConfig: Record<string, { label: string; icon: string }> = {
   bronze: { label: "برونزي", icon: "🥉" }, silver: { label: "فضي", icon: "🥈" }, gold: { label: "ذهبي", icon: "🥇" },
