@@ -56,12 +56,10 @@ export default function Dashboard() {
       .then(({ data }) => setAllSessions((data as any[]) || []));
   }, [profile]);
 
-  if (!profile) return null;
-
-  const isTeacher = profile.role === "teacher";
-  const lvl = getLevelInfo(profile.total_xp || 0);
+  const isTeacher = profile?.role === "teacher";
+  const lvl = getLevelInfo(profile?.total_xp || 0);
   const LevelIcon = lvl.icon;
-  const subjectsList = profile.subjects || [];
+  const subjectsList = profile?.subjects || [];
   const targets = useMemo(
     () => (profile ? listTargets(profile.id, subjectsList) : {}),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,6 +95,8 @@ export default function Dashboard() {
     const top = Object.entries(weeklyBySubject).sort((a, b) => b[1] - a[1]).slice(0, 3);
     return { focusMin: Math.round(focusMin), xp, topArr: top, sessions: ended.length };
   }, [sessions, weeklyBySubject]);
+
+  if (!profile) return null;
 
   const books = subjectsList.map((s) => getBookFor(s, profile.grade));
   const filteredBooks = books.filter((b) =>
