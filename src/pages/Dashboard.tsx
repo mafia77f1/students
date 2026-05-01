@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
-import { listTargets, getLastBook, setLastBook, setTarget, getTarget } from "@/lib/study-targets";
+import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume } from "@/lib/study-targets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
