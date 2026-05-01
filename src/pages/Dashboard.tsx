@@ -300,7 +300,12 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span>{fmt(done)} / {fmt(target)} • {rounds} جولة • باقي {fmt(remain)}</span>
                       <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] gap-1 text-primary"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/start-study?subject=${encodeURIComponent(sub)}`); }}>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const r = getResume(profile.id, sub);
+                          if (r?.sessionId) navigate(`/study-session/${r.sessionId}`);
+                          else navigate(`/start-study?subject=${encodeURIComponent(sub)}`);
+                        }}>
                         <Play className="h-3 w-3" /> {pct >= 100 ? "جلسة جديدة" : "متابعة"}
                       </Button>
                     </div>
