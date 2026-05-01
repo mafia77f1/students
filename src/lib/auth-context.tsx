@@ -26,6 +26,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  roles: string[];
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   profile: null,
+  roles: [],
   loading: true,
   signOut: async () => {},
   refreshProfile: async () => {},
