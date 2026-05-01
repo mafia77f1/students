@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera, Sparkles } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera, Sparkles, Crown, ShieldCheck } from "lucide-react";
+import { useIsAdmin, useIsPremium } from "@/lib/use-premium";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
