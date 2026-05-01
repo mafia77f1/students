@@ -144,10 +144,13 @@ export type Database = {
           created_at: string | null
           grade: string | null
           id: string
+          is_premium: boolean
           level: number | null
           name: string
           onboarding_completed: boolean | null
           onboarding_tour_completed: boolean | null
+          premium_seen: boolean
+          premium_until: string | null
           rank: string | null
           role: string | null
           subjects: string[] | null
@@ -163,10 +166,13 @@ export type Database = {
           created_at?: string | null
           grade?: string | null
           id: string
+          is_premium?: boolean
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
           onboarding_tour_completed?: boolean | null
+          premium_seen?: boolean
+          premium_until?: string | null
           rank?: string | null
           role?: string | null
           subjects?: string[] | null
@@ -182,10 +188,13 @@ export type Database = {
           created_at?: string | null
           grade?: string | null
           id?: string
+          is_premium?: boolean
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
           onboarding_tour_completed?: boolean | null
+          premium_seen?: boolean
+          premium_until?: string | null
           rank?: string | null
           role?: string | null
           subjects?: string[] | null
