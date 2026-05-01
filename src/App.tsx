@@ -59,6 +59,7 @@ function AppRoutes() {
         <Route path="/user/:id" element={<UserProfile />} />
         <Route path="/teachers" element={<TeachersList />} />
         <Route path="/premium" element={<Premium inline />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
