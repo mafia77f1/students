@@ -8,16 +8,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Instagram, Youtube, Link as LinkIcon, Save } from "lucide-react";
+import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Instagram, Youtube, Link as LinkIcon, Save, Crown, AtSign, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { AvatarUpload } from "@/components/AvatarUpload";
-
-const rankConfig: Record<string, { label: string; icon: string }> = {
-  bronze: { label: "برونزي", icon: "🥉" }, silver: { label: "فضي", icon: "🥈" }, gold: { label: "ذهبي", icon: "🥇" },
-  platinum: { label: "بلاتيني", icon: "💎" }, diamond: { label: "ماسي", icon: "💠" }, grandmaster: { label: "غراندماستر", icon: "👑" },
-};
-const allRanks = ["bronze", "silver", "gold", "platinum", "diamond", "grandmaster"];
+import { getRankInfo, ALL_RANKS } from "@/lib/level-utils";
+import { useIsPremium } from "@/lib/use-premium";
 
 interface TeacherProfile {
   bio: string;
