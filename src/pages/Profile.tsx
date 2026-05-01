@@ -210,14 +210,21 @@ export default function Profile() {
         <Card className="glass border-0 card-hover">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-secondary" /> التقدم</span>
-              <span className="text-xs text-muted-foreground">المستوى التالي</span>
+              <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-base">{rankInfo.emoji}</span> {rankInfo.title}
+              </span>
+              <span className="text-xs text-muted-foreground">المستوى {rankInfo.level} / 6</span>
             </div>
-            <Progress value={xpPercent} className="h-3" />
+            <Progress value={rankInfo.progress} className="h-3" />
             <div className="flex justify-between text-xs mt-2">
               <span className="text-muted-foreground">{profile.total_xp} XP</span>
-              <span className="font-bold text-primary">{xpToNext} XP</span>
+              <span className="font-bold text-primary">
+                {rankInfo.maxXP === Infinity ? "أعلى رتبة 👑" : `${rankInfo.maxXP + 1} XP`}
+              </span>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+              ✨ ميزتك الحالية: {rankInfo.perk}
+            </p>
           </CardContent>
         </Card>
       )}
