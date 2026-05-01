@@ -260,14 +260,14 @@ export default function Profile() {
           <CardHeader className="pb-2"><CardTitle className="text-sm">مسار الرتب</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center justify-between gap-1">
-              {allRanks.map((r, i) => {
-                const rc = rankConfig[r];
-                const achieved = i <= currentRankIdx;
+              {ALL_RANKS.map((r) => {
+                const achieved = rankInfo.level >= r.level;
+                const current = rankInfo.level === r.level;
                 return (
-                  <div key={r} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-30"}`}>
-                    <span className="text-xl">{rc.icon}</span>
-                    <span className="text-[9px] text-center">{rc.label}</span>
-                    {i === currentRankIdx && <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />}
+                  <div key={r.level} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-30"}`}>
+                    <span className="text-xl">{r.emoji}</span>
+                    <span className="text-[9px] text-center">{r.title}</span>
+                    {current && <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />}
                   </div>
                 );
               })}
