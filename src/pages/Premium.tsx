@@ -30,22 +30,71 @@ export default function Premium({ inline = false }: { inline?: boolean }) {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [code, setCode] = useState("");
+  const [celebrate, setCelebrate] = useState(false);
 
-  const handleSubscribe = async () => {
+  const redeemCode = async () => {
     if (!profile) return;
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) {
+      toast.error("الرجاء إدخال كود التفعيل");
+      return;
+    }
     setLoading(true);
-    // Placeholder until payments are wired up
-    const until = new Date();
-    until.setFullYear(until.getFullYear() + 1);
-    await supabase.from("profiles").update({
-      is_premium: true,
-      premium_until: until.toISOString(),
-      premium_seen: true,
-    }).eq("id", profile.id);
-    await refreshProfile();
-    toast.success("مرحباً بك في البريميوم 👑");
-    setLoading(false);
-    navigate("/");
+    try {
+      // 1) Look up an unused code matching exactly
+      const { data: codeRow, error: lookupErr } = await supabase
+        .from("subscription_codes")
+        .select("id, duration_days, is_used")
+        .eq("code", trimmed)
+        .eq("is_used", false)
+        .maybeSingle();
+
+      if (lookupErr || !codeRow) {
+        toast.error("كود غير صالح أو مستخدم مسبقاً");
+        setLoading(false);
+        return;
+      }
+
+      // 2) Mark it used (atomic via RLS — only succeeds if still unused)
+      const { error: updErr } = await supabase
+        .from("subscription_codes")
+        .update({
+          is_used: true,
+          used_by: profile.id,
+          used_at: new Date().toISOString(),
+        })
+        .eq("id", codeRow.id)
+        .eq("is_used", false);
+
+      if (updErr) {
+        toast.error("تعذر تفعيل الكود، حاول مرة أخرى");
+        setLoading(false);
+        return;
+      }
+
+      // 3) Extend premium on profile
+      const baseFrom = profile.premium_until && new Date(profile.premium_until) > new Date()
+        ? new Date(profile.premium_until)
+        : new Date();
+      const until = new Date(baseFrom.getTime() + codeRow.duration_days * 24 * 60 * 60 * 1000);
+
+      await supabase.from("profiles").update({
+        is_premium: true,
+        premium_until: until.toISOString(),
+        premium_seen: true,
+      }).eq("id", profile.id);
+
+      await refreshProfile();
+      setCelebrate(true);
+      toast.success(`🎉 تم تفعيل البريميوم لمدة ${codeRow.duration_days} يوم!`);
+      setTimeout(() => {
+        setCelebrate(false);
+        navigate("/");
+      }, 2200);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSkip = async () => {
