@@ -174,16 +174,36 @@ export default function Premium({ inline = false }: { inline?: boolean }) {
           </CardContent>
         </Card>
 
-        {/* CTA */}
+        {/* Activation code */}
+        <Card className="border-primary/30">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-primary" />
+              <h3 className="font-black text-sm">كود التفعيل</h3>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              أدخل الكود الذي حصلت عليه لتفعيل البريميوم. صيغة الكود: <span className="font-mono">TOLAB-XXXX-XXXX</span>
+            </p>
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="TOLAB-XXXX-XXXX"
+              className="font-mono text-center tracking-wider"
+              maxLength={32}
+              dir="ltr"
+            />
+            <Button
+              onClick={redeemCode}
+              disabled={loading || !code.trim()}
+              className="w-full h-12 gradient-primary text-white border-0 rounded-2xl font-black gap-2 glow-primary"
+            >
+              <Crown className="h-4 w-4" />
+              {loading ? "جاري التفعيل..." : "تفعيل الكود"}
+            </Button>
+          </CardContent>
+        </Card>
+
         <div className="space-y-2">
-          <Button
-            onClick={handleSubscribe}
-            disabled={loading}
-            className="w-full h-14 gradient-primary text-white border-0 rounded-2xl font-black text-base gap-2 glow-primary"
-          >
-            <Crown className="h-5 w-5" />
-            {loading ? "جاري التفعيل..." : "اشترك الآن — $9 / سنة"}
-          </Button>
           <Button
             onClick={handleSkip}
             variant="ghost"
@@ -192,6 +212,36 @@ export default function Premium({ inline = false }: { inline?: boolean }) {
             <X className="h-3.5 w-3.5" /> ربما لاحقاً، أكمل بالنسخة المجانية
           </Button>
         </div>
+
+        <AnimatePresence>
+          {celebrate && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="text-center"
+              >
+                <motion.div
+                  animate={{ rotate: [0, -10, 10, -10, 10, 0], scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                  className="w-32 h-32 mx-auto rounded-full gradient-primary flex items-center justify-center glow-primary mb-4"
+                >
+                  <Crown className="h-16 w-16 text-white drop-shadow-lg" />
+                </motion.div>
+                <h2 className="text-3xl font-black mb-2 flex items-center justify-center gap-2">
+                  <PartyPopper className="h-7 w-7 text-secondary" /> مبروك!
+                </h2>
+                <p className="text-muted-foreground">أصبحت عضو بريميوم 👑</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
