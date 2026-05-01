@@ -20,6 +20,7 @@ export interface Profile {
   is_premium?: boolean;
   premium_until?: string | null;
   premium_seen?: boolean;
+  username?: string | null;
 }
 
 interface AuthContextType {
