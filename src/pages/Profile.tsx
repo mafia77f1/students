@@ -95,10 +95,8 @@ export default function Profile() {
 
   if (!profile) return null;
 
-  const rank = rankConfig[profile.rank] || rankConfig.bronze;
-  const xpToNext = (profile.level + 1) * 200;
-  const xpPercent = Math.min((profile.total_xp / xpToNext) * 100, 100);
-  const currentRankIdx = allRanks.indexOf(profile.rank);
+  const rankInfo = getRankInfo(profile.total_xp || 0);
+  const username = (profile as any).username as string | null;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto pb-4">
@@ -112,13 +110,50 @@ export default function Profile() {
         <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex flex-col items-center text-center">
           <AvatarUpload size="lg" />
-          <h1 className="text-xl font-black mt-3">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
-          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
-            <span>{rank.icon}</span> {rank.label} • المستوى {profile.level}
+          <div className="flex items-center gap-2 mt-3">
+            <h1 className="text-xl font-black">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
+            {isPremium && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-black bg-white/25 px-2 py-0.5 rounded-full">
+                <Crown className="h-3 w-3" /> PRO
+              </span>
+            )}
+          </div>
+          {username && <p className="text-xs opacity-90 mt-0.5" dir="ltr">@{username}</p>}
+          <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
+            <span>{rankInfo.emoji}</span> {rankInfo.title} • المستوى {rankInfo.level}
           </div>
           {profile.grade && <p className="text-xs opacity-80 mt-2">{profile.grade} • {profile.country}</p>}
         </div>
       </motion.div>
+
+      {/* Username card */}
+      <Card className="glass border-0">
+        <CardContent className="pt-4 pb-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold flex items-center gap-2"><AtSign className="h-4 w-4 text-primary" /> اسم المستخدم</span>
+            {!editingUser && (
+              <Button variant="ghost" size="sm" onClick={() => { setUsernameInput(username || ""); setEditingUser(true); }}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          {editingUser ? (
+            <div className="flex gap-2">
+              <Input
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                placeholder="username"
+                dir="ltr"
+                maxLength={20}
+              />
+              <Button size="sm" onClick={saveUsername} disabled={savingUsername}>حفظ</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingUser(false)}>إلغاء</Button>
+            </div>
+          ) : (
+            <p className="text-sm font-mono text-muted-foreground" dir="ltr">@{username || "غير محدد"}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Teacher Profile */}
       {isTeacher && (
