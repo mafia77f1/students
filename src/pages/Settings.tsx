@@ -136,6 +136,25 @@ export default function Settings() {
         <Sparkles className="h-4 w-4 text-primary" /> إعادة عرض شاشة الترحيب
       </Button>
 
+      <Button
+        variant="outline"
+        className="w-full gap-2"
+        onClick={() => navigate("/premium")}
+      >
+        <Crown className="h-4 w-4 text-secondary" />
+        {isPremium ? "إدارة بريميوم" : "تفعيل بريميوم بكود"}
+      </Button>
+
+      {isAdmin && (
+        <Button
+          variant="outline"
+          className="w-full gap-2 border-primary/50"
+          onClick={() => navigate("/admin")}
+        >
+          <ShieldCheck className="h-4 w-4 text-primary" /> لوحة الأدمن
+        </Button>
+      )}
+
       <Button variant="outline" className="w-full gap-2 text-destructive" onClick={signOut}>
         <LogOut className="h-4 w-4" /> تسجيل الخروج
       </Button>
