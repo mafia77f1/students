@@ -8,16 +8,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Instagram, Youtube, Link as LinkIcon, Save } from "lucide-react";
+import { Clock, Zap, TrendingUp, Award, LogOut, BookOpen, Settings, Star, Instagram, Youtube, Link as LinkIcon, Save, Crown, AtSign, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { AvatarUpload } from "@/components/AvatarUpload";
-
-const rankConfig: Record<string, { label: string; icon: string }> = {
-  bronze: { label: "برونزي", icon: "🥉" }, silver: { label: "فضي", icon: "🥈" }, gold: { label: "ذهبي", icon: "🥇" },
-  platinum: { label: "بلاتيني", icon: "💎" }, diamond: { label: "ماسي", icon: "💠" }, grandmaster: { label: "غراندماستر", icon: "👑" },
-};
-const allRanks = ["bronze", "silver", "gold", "platinum", "diamond", "grandmaster"];
+import { getRankInfo, ALL_RANKS } from "@/lib/level-utils";
+import { useIsPremium } from "@/lib/use-premium";
 
 interface TeacherProfile {
   bio: string;
@@ -32,13 +28,37 @@ interface TeacherProfile {
 }
 
 export default function Profile() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const isPremium = useIsPremium();
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ bio: "", specialization: "", youtube_url: "", instagram_url: "", twitter_url: "", telegram_url: "", website_url: "" });
+  const [editingUser, setEditingUser] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
 
   const isTeacher = profile?.role === "teacher";
+
+  const saveUsername = async () => {
+    if (!profile) return;
+    const u = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (u.length < 3 || u.length > 20) {
+      toast.error("اسم المستخدم بين 3 و 20 حرف (a-z, 0-9, _)");
+      return;
+    }
+    setSavingUsername(true);
+    const { error } = await supabase.from("profiles").update({ username: u }).eq("id", profile.id);
+    if (error) {
+      toast.error(error.code === "23505" ? "اسم المستخدم محجوز" : "تعذر الحفظ");
+    } else {
+      toast.success("✅ تم حفظ اسم المستخدم");
+      setEditingUser(false);
+      await refreshProfile();
+    }
+    setSavingUsername(false);
+  };
+
 
   useEffect(() => {
     if (!profile || !isTeacher) return;
@@ -75,10 +95,8 @@ export default function Profile() {
 
   if (!profile) return null;
 
-  const rank = rankConfig[profile.rank] || rankConfig.bronze;
-  const xpToNext = (profile.level + 1) * 200;
-  const xpPercent = Math.min((profile.total_xp / xpToNext) * 100, 100);
-  const currentRankIdx = allRanks.indexOf(profile.rank);
+  const rankInfo = getRankInfo(profile.total_xp || 0);
+  const username = (profile as any).username as string | null;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto pb-4">
@@ -92,13 +110,50 @@ export default function Profile() {
         <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex flex-col items-center text-center">
           <AvatarUpload size="lg" />
-          <h1 className="text-xl font-black mt-3">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
-          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
-            <span>{rank.icon}</span> {rank.label} • المستوى {profile.level}
+          <div className="flex items-center gap-2 mt-3">
+            <h1 className="text-xl font-black">{profile.name || (isTeacher ? "أستاذ" : "طالب")}</h1>
+            {isPremium && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-black bg-white/25 px-2 py-0.5 rounded-full">
+                <Crown className="h-3 w-3" /> PRO
+              </span>
+            )}
+          </div>
+          {username && <p className="text-xs opacity-90 mt-0.5" dir="ltr">@{username}</p>}
+          <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
+            <span>{rankInfo.emoji}</span> {rankInfo.title} • المستوى {rankInfo.level}
           </div>
           {profile.grade && <p className="text-xs opacity-80 mt-2">{profile.grade} • {profile.country}</p>}
         </div>
       </motion.div>
+
+      {/* Username card */}
+      <Card className="glass border-0">
+        <CardContent className="pt-4 pb-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold flex items-center gap-2"><AtSign className="h-4 w-4 text-primary" /> اسم المستخدم</span>
+            {!editingUser && (
+              <Button variant="ghost" size="sm" onClick={() => { setUsernameInput(username || ""); setEditingUser(true); }}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          {editingUser ? (
+            <div className="flex gap-2">
+              <Input
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                placeholder="username"
+                dir="ltr"
+                maxLength={20}
+              />
+              <Button size="sm" onClick={saveUsername} disabled={savingUsername}>حفظ</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingUser(false)}>إلغاء</Button>
+            </div>
+          ) : (
+            <p className="text-sm font-mono text-muted-foreground" dir="ltr">@{username || "غير محدد"}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Teacher Profile */}
       {isTeacher && (
@@ -155,14 +210,21 @@ export default function Profile() {
         <Card className="glass border-0 card-hover">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-secondary" /> التقدم</span>
-              <span className="text-xs text-muted-foreground">المستوى التالي</span>
+              <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-base">{rankInfo.emoji}</span> {rankInfo.title}
+              </span>
+              <span className="text-xs text-muted-foreground">المستوى {rankInfo.level} / 6</span>
             </div>
-            <Progress value={xpPercent} className="h-3" />
+            <Progress value={rankInfo.progress} className="h-3" />
             <div className="flex justify-between text-xs mt-2">
               <span className="text-muted-foreground">{profile.total_xp} XP</span>
-              <span className="font-bold text-primary">{xpToNext} XP</span>
+              <span className="font-bold text-primary">
+                {rankInfo.maxXP === Infinity ? "أعلى رتبة 👑" : `${rankInfo.maxXP + 1} XP`}
+              </span>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+              ✨ ميزتك الحالية: {rankInfo.perk}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -198,14 +260,14 @@ export default function Profile() {
           <CardHeader className="pb-2"><CardTitle className="text-sm">مسار الرتب</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center justify-between gap-1">
-              {allRanks.map((r, i) => {
-                const rc = rankConfig[r];
-                const achieved = i <= currentRankIdx;
+              {ALL_RANKS.map((r) => {
+                const achieved = rankInfo.level >= r.level;
+                const current = rankInfo.level === r.level;
                 return (
-                  <div key={r} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-30"}`}>
-                    <span className="text-xl">{rc.icon}</span>
-                    <span className="text-[9px] text-center">{rc.label}</span>
-                    {i === currentRankIdx && <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />}
+                  <div key={r.level} className={`flex flex-col items-center gap-1 flex-1 ${achieved ? "" : "opacity-30"}`}>
+                    <span className="text-xl">{r.emoji}</span>
+                    <span className="text-[9px] text-center">{r.title}</span>
+                    {current && <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />}
                   </div>
                 );
               })}

@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera, Sparkles } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, LogOut, User, Save, Lock, Mail, Camera, Sparkles, Crown, ShieldCheck } from "lucide-react";
+import { useIsAdmin, useIsPremium } from "@/lib/use-premium";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -15,6 +16,8 @@ export default function Settings() {
   const { profile, signOut, refreshProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const isAdmin = useIsAdmin();
+  const isPremium = useIsPremium();
   
   const [name, setName] = useState(profile?.name || "");
   const [saving, setSaving] = useState(false);
@@ -132,6 +135,25 @@ export default function Settings() {
       >
         <Sparkles className="h-4 w-4 text-primary" /> إعادة عرض شاشة الترحيب
       </Button>
+
+      <Button
+        variant="outline"
+        className="w-full gap-2"
+        onClick={() => navigate("/premium")}
+      >
+        <Crown className="h-4 w-4 text-secondary" />
+        {isPremium ? "إدارة بريميوم" : "تفعيل بريميوم بكود"}
+      </Button>
+
+      {isAdmin && (
+        <Button
+          variant="outline"
+          className="w-full gap-2 border-primary/50"
+          onClick={() => navigate("/admin")}
+        >
+          <ShieldCheck className="h-4 w-4 text-primary" /> لوحة الأدمن
+        </Button>
+      )}
 
       <Button variant="outline" className="w-full gap-2 text-destructive" onClick={signOut}>
         <LogOut className="h-4 w-4" /> تسجيل الخروج

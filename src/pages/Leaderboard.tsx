@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Globe, MapPin, Crown } from "lucide-react";
 import { motion } from "framer-motion";
+import { UserSearch } from "@/components/UserSearch";
 
 const rankConfig: Record<string, { label: string; icon: string }> = {
   bronze: { label: "برونزي", icon: "🥉" }, silver: { label: "فضي", icon: "🥈" }, gold: { label: "ذهبي", icon: "🥇" },
@@ -40,6 +41,9 @@ export default function Leaderboard() {
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
+      {/* Search */}
+      <UserSearch />
+
       {/* Header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl gradient-primary glow-primary">
