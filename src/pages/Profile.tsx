@@ -28,13 +28,37 @@ interface TeacherProfile {
 }
 
 export default function Profile() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const isPremium = useIsPremium();
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ bio: "", specialization: "", youtube_url: "", instagram_url: "", twitter_url: "", telegram_url: "", website_url: "" });
+  const [editingUser, setEditingUser] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
 
   const isTeacher = profile?.role === "teacher";
+
+  const saveUsername = async () => {
+    if (!profile) return;
+    const u = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (u.length < 3 || u.length > 20) {
+      toast.error("اسم المستخدم بين 3 و 20 حرف (a-z, 0-9, _)");
+      return;
+    }
+    setSavingUsername(true);
+    const { error } = await supabase.from("profiles").update({ username: u }).eq("id", profile.id);
+    if (error) {
+      toast.error(error.code === "23505" ? "اسم المستخدم محجوز" : "تعذر الحفظ");
+    } else {
+      toast.success("✅ تم حفظ اسم المستخدم");
+      setEditingUser(false);
+      await refreshProfile();
+    }
+    setSavingUsername(false);
+  };
+
 
   useEffect(() => {
     if (!profile || !isTeacher) return;
