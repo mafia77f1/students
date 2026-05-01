@@ -58,7 +58,6 @@ export default function Dashboard() {
 
   const isTeacher = profile?.role === "teacher";
   const lvl = getLevelInfo(profile?.total_xp || 0);
-  const LevelIcon = lvl.icon;
   const subjectsList = profile?.subjects || [];
   const targets = useMemo(
     () => (profile ? listTargets(profile.id, subjectsList) : {}),
