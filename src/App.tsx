@@ -22,6 +22,7 @@ import UserProfile from "./pages/UserProfile";
 import TeachersList from "./pages/TeachersList";
 import NotFound from "./pages/NotFound";
 import Premium from "./pages/Premium";
+import Admin from "./pages/Admin";
 import ComingSoon from "./components/ComingSoon";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
