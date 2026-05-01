@@ -16,6 +16,8 @@ export default function Settings() {
   const { profile, signOut, refreshProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const isAdmin = useIsAdmin();
+  const isPremium = useIsPremium();
   
   const [name, setName] = useState(profile?.name || "");
   const [saving, setSaving] = useState(false);
