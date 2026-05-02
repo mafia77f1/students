@@ -155,6 +155,46 @@ export default function Profile() {
         </CardContent>
       </Card>
 
+      {/* Premium status */}
+      <Card className="glass border-0">
+        <CardContent className="pt-4 pb-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold flex items-center gap-2">
+              <Crown className="h-4 w-4 text-secondary" /> اشتراك بريميوم
+            </span>
+            {isPremium ? (
+              <span className="text-[10px] font-black bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded-full">نشط</span>
+            ) : (
+              <span className="text-[10px] font-black bg-muted text-muted-foreground px-2 py-0.5 rounded-full">غير مفعّل</span>
+            )}
+          </div>
+          {(() => {
+            const until = profile.premium_until ? new Date(profile.premium_until) : null;
+            const valid = isPremium && until;
+            const daysLeft = valid ? Math.max(0, Math.ceil((until!.getTime() - Date.now()) / 86_400_000)) : 0;
+            const updated = (profile as any).updated_at ? new Date((profile as any).updated_at) : null;
+            return (
+              <div className="text-xs text-muted-foreground space-y-1">
+                {valid ? (
+                  <>
+                    <p>المتبقي: <span className="font-bold text-foreground">{daysLeft} يوم</span></p>
+                    <p>ينتهي في: <span className="font-bold text-foreground" dir="ltr">{until!.toLocaleDateString("ar-IQ")}</span></p>
+                    {updated && <p>آخر تحديث: <span dir="ltr">{updated.toLocaleDateString("ar-IQ")}</span></p>}
+                  </>
+                ) : (
+                  <>
+                    <p>فعّل البريميوم لتفتح كل الميزات المتقدمة.</p>
+                    <Button size="sm" className="w-full mt-2 gradient-primary text-white rounded-xl gap-2" onClick={() => navigate("/premium")}>
+                      <Crown className="h-3.5 w-3.5" /> تفعيل بكود
+                    </Button>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
       {/* Teacher Profile */}
       {isTeacher && (
         <Card className="glass border-0 card-hover">

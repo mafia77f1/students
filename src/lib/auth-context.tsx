@@ -105,6 +105,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Realtime: keep profile + roles fresh (premium activation, role changes)
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`user-sync-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => {
+          if (payload.new) setProfile(payload.new as Profile);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` },
+        () => fetchRoles(user.id)
+      )
+      .subscribe();
+
+    // Re-check premium expiry every minute (locks features the second they expire)
+    const interval = setInterval(() => {
+      setProfile((p) => (p ? { ...p } : p));
+    }, 60_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [user?.id]);
+
   return (
     <AuthContext.Provider value={{ session, user, profile, roles, loading, signOut: async () => { await supabase.auth.signOut(); }, refreshProfile }}>
       {children}
