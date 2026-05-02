@@ -57,7 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("id", userId)
       .single();
-    setProfile(data as Profile | null);
+    const p = data as Profile | null;
+    setProfile(p);
+    // Hydrate study cache from cloud once we know subjects
+    if (p) hydrateStudyState(userId, p.subjects || []).catch(() => {});
   };
 
   const fetchRoles = async (userId: string) => {
@@ -86,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             fetchRoles(session.user.id);
           }, 500);
         } else {
+          clearStudyCache(user?.id);
           setProfile(null);
           setRoles([]);
         }
