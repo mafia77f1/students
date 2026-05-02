@@ -145,6 +145,7 @@ export type Database = {
           grade: string | null
           id: string
           is_premium: boolean
+          last_book: string | null
           level: number | null
           name: string
           onboarding_completed: boolean | null
@@ -168,6 +169,7 @@ export type Database = {
           grade?: string | null
           id: string
           is_premium?: boolean
+          last_book?: string | null
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
@@ -191,6 +193,7 @@ export type Database = {
           grade?: string | null
           id?: string
           is_premium?: boolean
+          last_book?: string | null
           level?: number | null
           name?: string
           onboarding_completed?: boolean | null
@@ -361,6 +364,48 @@ export type Database = {
         }
         Relationships: []
       }
+      study_resume: {
+        Row: {
+          break_seconds: number
+          id: string
+          is_break: boolean
+          round: number
+          round_seconds: number
+          saved_at: string
+          session_id: string | null
+          studied_seconds: number
+          subject: string
+          time_left: number
+          user_id: string
+        }
+        Insert: {
+          break_seconds?: number
+          id?: string
+          is_break?: boolean
+          round?: number
+          round_seconds?: number
+          saved_at?: string
+          session_id?: string | null
+          studied_seconds?: number
+          subject: string
+          time_left?: number
+          user_id: string
+        }
+        Update: {
+          break_seconds?: number
+          id?: string
+          is_break?: boolean
+          round?: number
+          round_seconds?: number
+          saved_at?: string
+          session_id?: string | null
+          studied_seconds?: number
+          subject?: string
+          time_left?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_rooms: {
         Row: {
           created_at: string | null
@@ -439,6 +484,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      study_targets: {
+        Row: {
+          created_at: string
+          id: string
+          last_session_id: string | null
+          subject: string
+          target_minutes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_session_id?: string | null
+          subject: string
+          target_minutes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_session_id?: string | null
+          subject?: string
+          target_minutes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       subscription_codes: {
         Row: {
