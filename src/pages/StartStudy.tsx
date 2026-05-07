@@ -9,9 +9,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { BookOpen, Target, Plus, Trash2, Rocket, ArrowRight, ArrowLeft, Check, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { setTarget, getTarget, getResume } from "@/lib/study-targets";
+import { setTarget, getTarget, getResume, clearResume } from "@/lib/study-targets";
 
-const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
+const DEFAULT_SUBJECTS = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
+const SUBJECTS_LS_KEY = (uid: string) => `custom-subjects:${uid}`;
 
 const durations = [
   { label: "15 د", value: 15, emoji: "⚡", desc: "جلسة سريعة" },
