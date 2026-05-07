@@ -17,7 +17,7 @@ import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume,
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdBanner } from "@/components/AdBanner";
-import { useAuth as useAuthRefresh } from "@/lib/auth-context";
+import { AdBanner as _AdBannerUnused } from "@/components/AdBanner";
 
 interface Sess {
   id?: string;
