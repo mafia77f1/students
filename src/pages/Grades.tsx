@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { BookOpen, Brain, Loader2, GraduationCap, FileText, Award, ArrowRight, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
-type ExamType = "ministerial" | "exemption";
+type ExamType = "ministerial" | "exemption" | "success_test";
 type Term = "first" | "mid" | "second";
 
 const TERM_LABELS: Record<Term, string> = {
@@ -41,6 +41,12 @@ const examInfo = {
     desc: "درجاتك في امتحانات الإعفاء",
     icon: Award,
     color: "from-amber-500 to-orange-500",
+  },
+  success_test: {
+    label: "اختبار النجاح",
+    desc: "6 أسئلة لمعرفة معدل نجاحك",
+    icon: GraduationCap,
+    color: "from-emerald-500 to-teal-500",
   },
 } as const;
 
