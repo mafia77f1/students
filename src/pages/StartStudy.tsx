@@ -176,19 +176,51 @@ export default function StartStudy() {
                   <h3 className="font-bold">اختر المادة الدراسية</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {subjects.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSubject(s)}
-                      className={`p-3 rounded-xl border-2 text-sm font-bold transition-all ${
-                        subject === s
-                          ? "gradient-primary text-white border-transparent glow-primary scale-[1.02]"
-                          : "border-border bg-card hover:border-primary/40"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {subjects.map((s) => {
+                    const hasResume = profile ? !!getResume(profile.id, s) : false;
+                    const selected = subject === s;
+                    return (
+                      <div key={s} className="relative group">
+                        <button
+                          onClick={() => setSubject(s)}
+                          className={`w-full p-3 rounded-xl border-2 text-sm font-bold transition-all ${
+                            selected
+                              ? "gradient-primary text-white border-transparent glow-primary scale-[1.02]"
+                              : "border-border bg-card hover:border-primary/40"
+                          }`}
+                        >
+                          {s}
+                          {hasResume && <span className="block text-[9px] opacity-80 mt-0.5">📍 توقفت هنا</span>}
+                        </button>
+                        <div className="absolute top-1 left-1 flex gap-1">
+                          {hasResume && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); clearResumeFor(s); }}
+                              title="حذف متابعة الدراسة"
+                              className="w-5 h-5 rounded-full bg-amber-500/90 text-white text-[10px] flex items-center justify-center hover:scale-110"
+                            >×</button>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeSubject(s); }}
+                            title="حذف المادة"
+                            className="w-5 h-5 rounded-full bg-destructive/90 text-white text-[10px] flex items-center justify-center hover:scale-110 opacity-0 group-hover:opacity-100 transition"
+                          >🗑</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Input
+                    placeholder="أضف مادة جديدة..."
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addSubject()}
+                    className="rounded-xl"
+                  />
+                  <Button onClick={addSubject} size="sm" className="gradient-primary text-white border-0 rounded-xl gap-1">
+                    <Plus className="h-4 w-4" /> إضافة
+                  </Button>
                 </div>
               </CardContent>
             </Card>
