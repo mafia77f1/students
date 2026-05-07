@@ -175,7 +175,7 @@ export default function Grades() {
         </motion.div>
 
         <div className="grid grid-cols-1 gap-3">
-          {(["ministerial", "exemption"] as ExamType[]).map((t, i) => {
+          {(["ministerial", "exemption", "success_test"] as ExamType[]).map((t, i) => {
             const info = examInfo[t];
             const Icon = info.icon;
             const count = grades.filter((g) => g.exam_type === t).length;
