@@ -230,6 +230,11 @@ export default function Grades() {
     );
   }
 
+  // ===== Success Test special view =====
+  if (activeExam === "success_test") {
+    return <SuccessTestView subjects={userSubjects} onBack={() => setActiveExam(null)} />;
+  }
+
   // ===== Exam detail view: per-subject 3-term entry =====
   const info = examInfo[activeExam];
   const Icon = info.icon;
