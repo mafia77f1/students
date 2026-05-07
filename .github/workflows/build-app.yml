@@ -62,7 +62,7 @@ jobs:
       - name: Generate Android app icons (Capacitor Assets)
         run: |
           mkdir -p assets
-          cp public/setvoid.png assets/icon.png
+          cp public/app-icon.png assets/icon.png
           npx --yes @capacitor/assets generate --android
 
       - name: Sync Capacitor
