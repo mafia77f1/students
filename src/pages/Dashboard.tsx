@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import {
   Clock, Zap, Play, Star, BarChart3, Sparkles, BookOpen, GraduationCap,
-  ExternalLink, Trophy, Search, Download, History, Flame, TrendingUp, Target, Settings2,
+  ExternalLink, Trophy, Search, Download, History, Flame, TrendingUp, Target, Settings2, X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
-import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume } from "@/lib/study-targets";
+import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume, clearResume } from "@/lib/study-targets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AdBanner } from "@/components/AdBanner";
+import { useAuth as useAuthRefresh } from "@/lib/auth-context";
 
 interface Sess {
   id?: string;
@@ -27,7 +29,7 @@ interface Sess {
 }
 
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<Sess[]>([]);
   const [allSessions, setAllSessions] = useState<Sess[]>([]);
