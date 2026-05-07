@@ -9,9 +9,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { BookOpen, Target, Plus, Trash2, Rocket, ArrowRight, ArrowLeft, Check, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { setTarget, getTarget, getResume } from "@/lib/study-targets";
+import { setTarget, getTarget, getResume, clearResume } from "@/lib/study-targets";
 
-const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
+const DEFAULT_SUBJECTS = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
+const SUBJECTS_LS_KEY = (uid: string) => `custom-subjects:${uid}`;
 
 const durations = [
   { label: "15 د", value: 15, emoji: "⚡", desc: "جلسة سريعة" },
@@ -42,6 +43,45 @@ export default function StartStudy() {
   const [targetHours, setTargetHours] = useState<number>(2);
   const [goals, setGoals] = useState<Goal[]>([{ id: 1, description: "" }]);
   const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState<string[]>(DEFAULT_SUBJECTS);
+  const [newSubject, setNewSubject] = useState("");
+
+  // Load custom subjects (profile.subjects + extras stored locally)
+  useEffect(() => {
+    if (!profile) return;
+    let extras: string[] = [];
+    try { extras = JSON.parse(localStorage.getItem(SUBJECTS_LS_KEY(profile.id)) || "[]"); } catch {}
+    const merged = Array.from(new Set([...(profile.subjects || []), ...DEFAULT_SUBJECTS, ...extras]));
+    setSubjects(merged);
+  }, [profile]);
+
+  const persistSubjects = (next: string[]) => {
+    setSubjects(next);
+    if (!profile) return;
+    const extras = next.filter((s) => !DEFAULT_SUBJECTS.includes(s) && !(profile.subjects || []).includes(s));
+    try { localStorage.setItem(SUBJECTS_LS_KEY(profile.id), JSON.stringify(extras)); } catch {}
+  };
+
+  const addSubject = () => {
+    const s = newSubject.trim();
+    if (!s || subjects.includes(s)) { setNewSubject(""); return; }
+    persistSubjects([...subjects, s]);
+    setNewSubject("");
+    toast.success(`تمت إضافة "${s}" ✅`);
+  };
+
+  const removeSubject = (s: string) => {
+    persistSubjects(subjects.filter((x) => x !== s));
+    if (profile) clearResume(profile.id, s);
+    if (subject === s) setSubject("");
+    toast.success("تم الحذف 🗑️");
+  };
+
+  const clearResumeFor = (s: string) => {
+    if (!profile) return;
+    clearResume(profile.id, s);
+    toast.success("تم حذف متابعة الدراسة لهذه المادة");
+  };
 
   useEffect(() => {
     if (resumeSubject && profile) {
@@ -136,19 +176,51 @@ export default function StartStudy() {
                   <h3 className="font-bold">اختر المادة الدراسية</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {subjects.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSubject(s)}
-                      className={`p-3 rounded-xl border-2 text-sm font-bold transition-all ${
-                        subject === s
-                          ? "gradient-primary text-white border-transparent glow-primary scale-[1.02]"
-                          : "border-border bg-card hover:border-primary/40"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {subjects.map((s) => {
+                    const hasResume = profile ? !!getResume(profile.id, s) : false;
+                    const selected = subject === s;
+                    return (
+                      <div key={s} className="relative group">
+                        <button
+                          onClick={() => setSubject(s)}
+                          className={`w-full p-3 rounded-xl border-2 text-sm font-bold transition-all ${
+                            selected
+                              ? "gradient-primary text-white border-transparent glow-primary scale-[1.02]"
+                              : "border-border bg-card hover:border-primary/40"
+                          }`}
+                        >
+                          {s}
+                          {hasResume && <span className="block text-[9px] opacity-80 mt-0.5">📍 توقفت هنا</span>}
+                        </button>
+                        <div className="absolute top-1 left-1 flex gap-1">
+                          {hasResume && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); clearResumeFor(s); }}
+                              title="حذف متابعة الدراسة"
+                              className="w-5 h-5 rounded-full bg-amber-500/90 text-white text-[10px] flex items-center justify-center hover:scale-110"
+                            >×</button>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeSubject(s); }}
+                            title="حذف المادة"
+                            className="w-5 h-5 rounded-full bg-destructive/90 text-white text-[10px] flex items-center justify-center hover:scale-110 opacity-0 group-hover:opacity-100 transition"
+                          >🗑</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Input
+                    placeholder="أضف مادة جديدة..."
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addSubject()}
+                    className="rounded-xl"
+                  />
+                  <Button onClick={addSubject} size="sm" className="gradient-primary text-white border-0 rounded-xl gap-1">
+                    <Plus className="h-4 w-4" /> إضافة
+                  </Button>
                 </div>
               </CardContent>
             </Card>
