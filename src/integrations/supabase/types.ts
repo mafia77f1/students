@@ -136,6 +136,41 @@ export type Database = {
         }
         Relationships: []
       }
+      note_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          note_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          note_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          note_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_ratings_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "study_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age: number | null
@@ -143,6 +178,7 @@ export type Database = {
           country: string | null
           created_at: string | null
           grade: string | null
+          hidden_subjects: string[]
           id: string
           is_premium: boolean
           last_book: string | null
@@ -167,6 +203,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           grade?: string | null
+          hidden_subjects?: string[]
           id: string
           is_premium?: boolean
           last_book?: string | null
@@ -191,6 +228,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           grade?: string | null
+          hidden_subjects?: string[]
           id?: string
           is_premium?: boolean
           last_book?: string | null
@@ -328,6 +366,66 @@ export type Database = {
           subject?: string
           term?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      study_notes: {
+        Row: {
+          author: string | null
+          average_rating: number | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          download_url: string | null
+          downloads_count: number | null
+          grade: string | null
+          id: string
+          is_free: boolean | null
+          price: number | null
+          purchase_url: string | null
+          subject: string
+          title: string
+          total_ratings: number | null
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          average_rating?: number | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          download_url?: string | null
+          downloads_count?: number | null
+          grade?: string | null
+          id?: string
+          is_free?: boolean | null
+          price?: number | null
+          purchase_url?: string | null
+          subject: string
+          title: string
+          total_ratings?: number | null
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          average_rating?: number | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          download_url?: string | null
+          downloads_count?: number | null
+          grade?: string | null
+          id?: string
+          is_free?: boolean | null
+          price?: number | null
+          purchase_url?: string | null
+          subject?: string
+          title?: string
+          total_ratings?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
