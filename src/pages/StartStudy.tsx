@@ -43,6 +43,45 @@ export default function StartStudy() {
   const [targetHours, setTargetHours] = useState<number>(2);
   const [goals, setGoals] = useState<Goal[]>([{ id: 1, description: "" }]);
   const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState<string[]>(DEFAULT_SUBJECTS);
+  const [newSubject, setNewSubject] = useState("");
+
+  // Load custom subjects (profile.subjects + extras stored locally)
+  useEffect(() => {
+    if (!profile) return;
+    let extras: string[] = [];
+    try { extras = JSON.parse(localStorage.getItem(SUBJECTS_LS_KEY(profile.id)) || "[]"); } catch {}
+    const merged = Array.from(new Set([...(profile.subjects || []), ...DEFAULT_SUBJECTS, ...extras]));
+    setSubjects(merged);
+  }, [profile]);
+
+  const persistSubjects = (next: string[]) => {
+    setSubjects(next);
+    if (!profile) return;
+    const extras = next.filter((s) => !DEFAULT_SUBJECTS.includes(s) && !(profile.subjects || []).includes(s));
+    try { localStorage.setItem(SUBJECTS_LS_KEY(profile.id), JSON.stringify(extras)); } catch {}
+  };
+
+  const addSubject = () => {
+    const s = newSubject.trim();
+    if (!s || subjects.includes(s)) { setNewSubject(""); return; }
+    persistSubjects([...subjects, s]);
+    setNewSubject("");
+    toast.success(`تمت إضافة "${s}" ✅`);
+  };
+
+  const removeSubject = (s: string) => {
+    persistSubjects(subjects.filter((x) => x !== s));
+    if (profile) clearResume(profile.id, s);
+    if (subject === s) setSubject("");
+    toast.success("تم الحذف 🗑️");
+  };
+
+  const clearResumeFor = (s: string) => {
+    if (!profile) return;
+    clearResume(profile.id, s);
+    toast.success("تم حذف متابعة الدراسة لهذه المادة");
+  };
 
   useEffect(() => {
     if (resumeSubject && profile) {
