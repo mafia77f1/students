@@ -321,3 +321,102 @@ export default function Grades() {
     </div>
   );
 }
+
+// ===================== Success Test sub-view =====================
+function SuccessTestView({ subjects, onBack }: { subjects: string[]; onBack: () => void }) {
+  const [subject, setSubject] = useState<string>(subjects[0] || "");
+  const [answers, setAnswers] = useState<string[]>(Array(6).fill(""));
+  const [submitted, setSubmitted] = useState(false);
+
+  const setAns = (i: number, v: string) => {
+    if (v && !/^\d{0,3}(\.\d{0,2})?$/.test(v)) return;
+    setAnswers((p) => p.map((x, idx) => (idx === i ? v : x)));
+  };
+
+  const nums = answers.map((a) => parseFloat(a)).filter((n) => !isNaN(n));
+  const avg = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+  const passed = avg >= 50;
+
+  const reset = () => { setAnswers(Array(6).fill("")); setSubmitted(false); };
+
+  if (!subject) {
+    return (
+      <Card className="glass border-0 max-w-lg mx-auto">
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          لم تختر مواد بعد. عدّل ملفك الشخصي لإضافتها.
+          <Button onClick={onBack} variant="outline" className="mt-4 rounded-xl">رجوع</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4 max-w-lg mx-auto pb-4">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-5 text-white shadow-xl bg-gradient-to-br from-emerald-500 to-teal-500">
+        <button onClick={onBack} className="text-[11px] opacity-80 mb-1 flex items-center gap-1">← رجوع</button>
+        <h1 className="text-xl font-black flex items-center gap-2"><GraduationCap className="h-5 w-5" /> اختبار النجاح</h1>
+        <p className="text-xs opacity-90 mt-1">أدخل درجتك في كل سؤال (من 100). يحسب المعدل الكلي.</p>
+      </motion.div>
+
+      <Card className="glass border-0">
+        <CardContent className="pt-4 space-y-3">
+          <div>
+            <Label className="text-xs font-bold mb-2 block">اختر المادة</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {subjects.map((s) => (
+                <button key={s} onClick={() => { setSubject(s); reset(); }}
+                  className={`p-2 rounded-xl border-2 text-xs font-bold transition ${
+                    subject === s ? "gradient-primary text-white border-transparent" : "border-border bg-card"
+                  }`}>{s}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg gradient-primary text-white flex items-center justify-center text-xs font-black shrink-0">{i + 1}</div>
+                <Input
+                  inputMode="decimal"
+                  placeholder={`درجة السؤال ${i + 1} (من 100)`}
+                  value={answers[i]}
+                  onChange={(e) => setAns(i, e.target.value)}
+                  className="text-center font-bold rounded-xl"
+                />
+              </div>
+            ))}
+          </div>
+
+          <Button onClick={() => setSubmitted(true)} disabled={nums.length < 6}
+            className="w-full gradient-primary text-white border-0 rounded-xl font-black py-5">
+            احسب معدل النجاح 🎯
+          </Button>
+        </CardContent>
+      </Card>
+
+      {submitted && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+          <Card className={`border-0 overflow-hidden ${passed ? "bg-gradient-to-br from-emerald-500 to-teal-500" : "bg-gradient-to-br from-rose-500 to-orange-500"} text-white shadow-2xl`}>
+            <CardContent className="pt-6 pb-6 text-center space-y-3">
+              <div className="text-6xl">{passed ? "🎉" : "💪"}</div>
+              <h2 className="text-3xl font-black">{avg.toFixed(1)}/100</h2>
+              <p className="text-sm font-bold opacity-95">معدلك في {subject}</p>
+              <div className={`inline-block px-4 py-2 rounded-full text-sm font-black ${passed ? "bg-white/25" : "bg-white/25"}`}>
+                {passed ? "✅ ناجح" : "❌ راسب"}
+              </div>
+              <p className="text-xs opacity-95 leading-relaxed pt-2 max-w-md mx-auto">
+                {passed
+                  ? "ممتاز! استمر على هذا الأداء وارفع طموحك أكثر، أنت تستحق التفوق ⭐"
+                  : "لا تستسلم أبداً! 🔥 الراسب اليوم هو الناجح غداً إذا قرر النهوض الآن. كل عظيم في التاريخ سقط مرة وقام عشر مرات. ابدأ جلسة دراسة الآن وحوّل هذا الرقم إلى نصر — أنت أقوى مما تظن، وقصتك لم تنتهِ بعد. قم وذاكر، ولن يوقفك شيء 💎"}
+              </p>
+              <Button onClick={reset} variant="outline" className="bg-white/20 border-white/30 text-white hover:bg-white/30 rounded-xl mt-2">
+                إعادة المحاولة
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+    </div>
+  );
+}
