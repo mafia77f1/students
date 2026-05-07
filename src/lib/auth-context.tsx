@@ -22,6 +22,7 @@ export interface Profile {
   premium_until?: string | null;
   premium_seen?: boolean;
   username?: string | null;
+  hidden_subjects?: string[];
 }
 
 interface AuthContextType {

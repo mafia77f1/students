@@ -23,6 +23,7 @@ import TeachersList from "./pages/TeachersList";
 import NotFound from "./pages/NotFound";
 import Premium from "./pages/Premium";
 import Admin from "./pages/Admin";
+import Notes from "./pages/Notes";
 import ComingSoon from "./components/ComingSoon";
 import { AdminRoute } from "@/components/AdminRoute";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="/user/:id" element={<UserProfile />} />
         <Route path="/teachers" element={<TeachersList />} />
         <Route path="/premium" element={<Premium inline />} />
+        <Route path="/notes" element={<Notes />} />
         <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
       </Route>
       <Route path="*" element={<NotFound />} />

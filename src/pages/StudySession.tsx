@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SessionSummary from "@/components/SessionSummary";
 import { getTarget, setResume, getResume, clearResume } from "@/lib/study-targets";
+import { verifyPremiumLive } from "@/lib/use-premium";
+import { AdBanner } from "@/components/AdBanner";
 
 const BREAK_SECONDS = 2 * 60; // 2-minute break between rounds
 
@@ -112,7 +114,9 @@ export default function StudySession() {
     const totalFocusSec = studiedSeconds + ongoing;
     const minutesStudied = Math.max(0, Math.round(totalFocusSec / 60));
     const breakMin = Math.round(breakSeconds / 60);
-    const xp = minutesStudied * 2;
+    // Premium users get +50% XP. Always re-verify against DB (not cached flag).
+    const premiumLive = await verifyPremiumLive(profile.id);
+    const xp = Math.round(minutesStudied * 2 * (premiumLive ? 1.5 : 1));
     const roundsDone = round - 1 + (ongoing > 0 ? 1 : 0);
 
     await supabase.from("study_sessions").update({
@@ -257,6 +261,7 @@ export default function StudySession() {
         <Square className="h-4 w-4" />
         إنهاء وحفظ التقدم
       </Button>
+      <AdBanner />
     </div>
   );
 }

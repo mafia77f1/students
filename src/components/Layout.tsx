@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, Trophy, User, Swords, Settings, MessageCircle } from "lucide-react";
+import { Home, BookOpen, Trophy, User, Swords, Settings, MessageCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -10,7 +10,7 @@ export function Layout() {
 
   const navItems = [
     { label: "الرئيسية", path: "/", icon: Home },
-    { label: "الغرف", path: "/lobby", icon: Users },
+    { label: "الملازم", path: "/notes", icon: BookOpen },
     { label: "التحدي", path: "/challenges", icon: Swords },
     { label: "الصدارة", path: "/leaderboard", icon: Trophy },
     { label: "حسابي", path: "/profile", icon: User },

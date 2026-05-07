@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import {
   Clock, Zap, Play, Star, BarChart3, Sparkles, BookOpen, GraduationCap,
-  ExternalLink, Trophy, Search, Download, History, Flame, TrendingUp, Target, Settings2,
+  ExternalLink, Trophy, Search, Download, History, Flame, TrendingUp, Target, Settings2, X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
-import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume } from "@/lib/study-targets";
+import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume, clearResume } from "@/lib/study-targets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AdBanner } from "@/components/AdBanner";
+// (AdBanner already imported above)
 
 interface Sess {
   id?: string;
@@ -27,7 +29,7 @@ interface Sess {
 }
 
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<Sess[]>([]);
   const [allSessions, setAllSessions] = useState<Sess[]>([]);
@@ -271,7 +273,24 @@ export default function Dashboard() {
       )}
 
       {/* Per-subject progress + history */}
-      {!isTeacher && subjectsList.length > 0 && (
+      {!isTeacher && subjectsList.length > 0 && (() => {
+        const hidden: string[] = (profile as any).hidden_subjects || [];
+        const visible = subjectsList.filter((sub) => {
+          if (hidden.includes(sub)) return false;
+          const target = targets[sub]?.targetMinutes || 240;
+          const done = Math.round(minutesBySubject[sub] || 0);
+          return done < target; // auto-hide once goal reached
+        });
+        if (visible.length === 0) return null;
+        const dismissSubject = async (sub: string) => {
+          if (!profile) return;
+          const next = Array.from(new Set([...hidden, sub]));
+          await supabase.from("profiles").update({ hidden_subjects: next } as any).eq("id", profile.id);
+          clearResume(profile.id, sub);
+          await refreshProfile();
+          toast.success(`تم إخفاء ${sub} من المتابعة`);
+        };
+        return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <h2 className="font-black text-sm mb-2 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-md">
@@ -280,16 +299,23 @@ export default function Dashboard() {
             تقدمك بالمواد
           </h2>
           <div className="space-y-2">
-            {subjectsList.map((sub) => {
+            {visible.map((sub) => {
               const target = targets[sub]?.targetMinutes || 240;
               const done = Math.round(minutesBySubject[sub] || 0);
               const pct = Math.min(100, Math.round((done / target) * 100));
               const remain = Math.max(0, target - done);
               const rounds = subjectHistory(sub).length;
               return (
-                <Card key={sub} className="border-border/50 cursor-pointer hover:border-primary/40 transition" onClick={() => setHistoryDialog(sub)}>
+                <Card key={sub} className="border-border/50 cursor-pointer hover:border-primary/40 transition relative" onClick={() => setHistoryDialog(sub)}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); dismissSubject(sub); }}
+                    className="absolute top-2 left-2 w-6 h-6 rounded-full bg-muted hover:bg-destructive hover:text-white flex items-center justify-center transition"
+                    title="حذف من المتابعة"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                   <CardContent className="p-3">
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center justify-between mb-1.5 pl-7">
                       <p className="font-bold text-sm">{sub}</p>
                       <span className="text-[10px] font-black text-primary">{pct}%</span>
                     </div>
@@ -314,8 +340,10 @@ export default function Dashboard() {
               );
             })}
           </div>
+          <AdBanner />
         </motion.div>
-      )}
+        );
+      })()}
 
       {/* Books for grade */}
       {!isTeacher && (
