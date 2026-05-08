@@ -37,28 +37,28 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-y-auto overflow-x-hidden">
-      {/* Background glow blobs - app feel */}
+    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+      {/* Background glow blobs */}
       <motion.div
-        className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/25 blur-3xl"
+        className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/25 blur-3xl pointer-events-none"
         animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 6, repeat: Infinity }}
       />
       <motion.div
-        className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/25 blur-3xl"
+        className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/25 blur-3xl pointer-events-none"
         animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.45, 0.25] }}
         transition={{ duration: 7, repeat: Infinity }}
       />
 
-      {/* App-like hero */}
-      <div className="pt-[max(2rem,env(safe-area-inset-top))] pb-6 px-6 text-center relative z-10">
+      {/* App-like hero area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         <motion.img
           src={appIcon}
           alt="طلاب"
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="w-24 h-24 mx-auto rounded-3xl object-cover mb-4"
+          className="w-24 h-24 rounded-3xl object-cover mb-4"
           style={{ boxShadow: "0 0 50px hsl(var(--secondary) / 0.5)" }}
         />
         <motion.h1
@@ -76,10 +76,10 @@ export default function Auth() {
 
       {/* App-like bottom sheet form */}
       <motion.div
-        initial={{ y: 60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, type: "spring", damping: 20 }}
-        className="bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2rem] px-6 pt-7 pb-[max(2rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl mt-auto"
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.1, type: "spring", damping: 25, stiffness: 200 }}
+        className="bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl"
       >
         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
 
@@ -104,7 +104,7 @@ export default function Auth() {
             <Label htmlFor="email" className="text-xs font-bold">البريد الإلكتروني</Label>
             <div className="relative">
               <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="email" type="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required />
+              <Input id="email" type="email" inputMode="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -125,7 +125,8 @@ export default function Auth() {
 
         <button
           onClick={() => setIsLogin(!isLogin)}
-          className="block mx-auto mt-5 text-xs text-muted-foreground"
+          type="button"
+          className="block mx-auto mt-5 text-xs text-muted-foreground mb-2"
         >
           {isLogin ? <>ليس لديك حساب؟ <span className="text-primary font-bold">أنشئ حساب</span></> : <>لديك حساب؟ <span className="text-primary font-bold">سجل دخول</span></>}
         </button>
