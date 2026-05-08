@@ -20,7 +20,7 @@ export default function Splash({ onFinish }: { onFinish: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-between p-6 relative overflow-y-auto overflow-x-hidden gap-6">
       {/* Floating glow blobs */}
       <motion.div
         className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/30 blur-3xl"
