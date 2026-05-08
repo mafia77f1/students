@@ -1,7 +1,6 @@
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Trophy, Users, Rocket, ArrowLeft } from "lucide-react";
+import { Trophy, Users, Rocket, ArrowLeft } from "lucide-react";
 import appIcon from "@/assets/app-icon.png";
 
 const features = [
@@ -21,67 +20,29 @@ export default function Splash({ onFinish }: { onFinish: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between p-6 relative overflow-y-auto overflow-x-hidden gap-6">
-      {/* Floating glow blobs */}
-      <motion.div
-        className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/30 blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-secondary/30 blur-3xl"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 7, repeat: Infinity }}
-      />
-
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10 max-w-md">
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="relative mb-6"
-        >
+        <div className="relative mb-6">
           <img
             src={appIcon}
             alt="طلاب"
-            className="w-32 h-32 rounded-[2rem] object-cover shadow-2xl"
-            style={{ boxShadow: "0 0 60px hsl(var(--secondary) / 0.6), 0 0 100px hsl(var(--primary) / 0.3)" }}
+            className="w-28 h-28 rounded-[1.5rem] object-cover shadow-lg"
           />
-          <motion.div
-            className="absolute -top-2 -right-2"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          >
-            <Sparkles className="h-7 w-7 text-secondary drop-shadow-lg" />
-          </motion.div>
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-5xl font-black gradient-text mb-3"
-        >
+        <h1 className="text-5xl font-black gradient-text mb-3">
           طلاب
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-base text-muted-foreground mb-10 leading-relaxed"
-        >
+        </h1>
+        <p className="text-base text-muted-foreground mb-10 leading-relaxed">
           منصتك الذكية للدراسة الجماعية الملعّبة 🚀<br />
           ادرس، تحدَّ، وارتقِ على لوحة الصدارة
-        </motion.p>
+        </p>
 
         <div className="space-y-3 w-full mb-8">
           {features.map((f, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 + i * 0.12 }}
-              className="glass rounded-2xl p-4 flex items-center gap-3 text-right"
+              className="rounded-2xl border border-border/60 bg-card p-4 flex items-center gap-3 text-right shadow-sm"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shrink-0 shadow-lg`}>
                 <f.icon className="h-6 w-6 text-white" />
@@ -90,28 +51,23 @@ export default function Splash({ onFinish }: { onFinish: () => void }) {
                 <h3 className="font-black text-sm">{f.title}</h3>
                 <p className="text-xs text-muted-foreground">{f.desc}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="w-full max-w-md relative z-10"
-      >
+      <div className="w-full max-w-md relative z-10">
         <Button
           onClick={handleStart}
-          className="w-full gradient-primary text-white border-0 text-base py-7 gap-2 rounded-2xl glow-primary font-black"
+          className="w-full gradient-primary text-white border-0 text-base py-6 gap-2 rounded-2xl font-black shadow-md"
         >
           ابدأ الرحلة <ArrowLeft className="h-5 w-5" />
         </Button>
         <p className="text-center text-[11px] text-muted-foreground mt-3">
           انضم لآلاف الطلاب وحقق أهدافك ✨
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }
