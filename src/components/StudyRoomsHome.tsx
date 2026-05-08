@@ -25,6 +25,9 @@ interface Room {
   participant_count: number;
 }
 
+type RoomRow = Omit<Room, "participant_count">;
+type ParticipantRow = { room_id: string };
+
 export function StudyRoomsHome() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -47,18 +50,19 @@ export function StudyRoomsHome() {
       return;
     }
 
-    const roomIds = data.map((room: any) => room.id);
+    const roomRows = data as RoomRow[];
+    const roomIds = roomRows.map((room) => room.id);
     const { data: participants } = await supabase
       .from("room_participants")
       .select("room_id")
       .in("room_id", roomIds);
 
     const counts: Record<string, number> = {};
-    participants?.forEach((p: any) => {
+    (participants as ParticipantRow[] | null)?.forEach((p) => {
       counts[p.room_id] = (counts[p.room_id] || 0) + 1;
     });
 
-    setRooms(data.map((room: any) => ({ ...room, participant_count: counts[room.id] || 0 })));
+    setRooms(roomRows.map((room) => ({ ...room, participant_count: counts[room.id] || 0 })));
   };
 
   useEffect(() => {
@@ -89,7 +93,7 @@ export function StudyRoomsHome() {
     setDialogOpen(false);
     setNewRoomName("");
     setNewRoomSubject("");
-    if (data) navigate(`/room/${(data as any).id}`);
+    if (data) navigate(`/room/${(data as { id: string }).id}`);
   };
 
   return (
