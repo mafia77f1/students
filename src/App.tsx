@@ -50,6 +50,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
+        <Route path="/index" element={<Index />} />
         <Route path="/lobby" element={<Lobby />} />
         <Route path="/room/:id" element={<StudyRoom />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
