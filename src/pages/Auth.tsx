@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,33 +37,22 @@ export default function Auth() {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* Background glow blobs */}
-      <motion.div
-        className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/25 blur-3xl pointer-events-none"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/25 blur-3xl pointer-events-none"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.45, 0.25] }}
-        transition={{ duration: 7, repeat: Infinity }}
-      />
+      {/* Static Background Blobs - No animation to prevent lag */}
+      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/10 blur-3xl pointer-events-none" />
 
-      {/* App-like hero area */}
+      {/* Hero area */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         <motion.img
           src={appIcon}
           alt="طلاب"
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="w-24 h-24 rounded-3xl object-cover mb-4"
-          style={{ boxShadow: "0 0 50px hsl(var(--secondary) / 0.5)" }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-24 h-24 rounded-3xl object-cover mb-4 shadow-xl"
         />
         <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="text-3xl font-black gradient-text mb-1"
         >
           طلاب
@@ -74,12 +62,12 @@ export default function Auth() {
         </p>
       </div>
 
-      {/* App-like bottom sheet form */}
+      {/* Bottom sheet form - Removed backdrop-blur for performance */}
       <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        transition={{ delay: 0.1, type: "spring", damping: 25, stiffness: 200 }}
-        className="bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl"
+        initial={{ y: "20%", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-card border-t border-border/50 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
       >
         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
 
@@ -114,7 +102,7 @@ export default function Auth() {
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required minLength={6} />
             </div>
           </div>
-          <Button type="submit" className="w-full h-13 py-6 gradient-primary text-white border-0 rounded-2xl font-black gap-2 glow-primary mt-2" disabled={loading}>
+          <Button type="submit" className="w-full h-12 py-6 gradient-primary text-white border-0 rounded-2xl font-black gap-2 mt-2" disabled={loading}>
             {loading ? "جاري التحميل..." : (
               <>
                 {isLogin ? "دخول" : "إنشاء حساب"} <ArrowLeft className="h-4 w-4" />
