@@ -116,7 +116,7 @@
     background-image:
       radial-gradient(at 20% 0%, hsl(var(--primary) / 0.08) 0px, transparent 50%),
       radial-gradient(at 80% 100%, hsl(var(--secondary) / 0.06) 0px, transparent 50%);
-    background-attachment: fixed;
+    background-attachment: scroll;
     min-height: 100vh;
   }
 
@@ -188,10 +188,9 @@
   }
 
   .glass {
-    background: hsl(var(--card) / 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: hsl(var(--card) / 0.94);
     border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.06);
   }
 
   .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -217,6 +216,15 @@
     background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
     background-size: 200% 100%;
     animation: shimmer 3s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   @keyframes gradient-shift {
