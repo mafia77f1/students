@@ -37,7 +37,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-y-auto overflow-x-hidden">
       {/* Background glow blobs - app feel */}
       <motion.div
         className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/25 blur-3xl"
@@ -79,7 +79,7 @@ export default function Auth() {
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, type: "spring", damping: 20 }}
-        className="flex-1 bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2rem] px-6 pt-7 pb-[max(2rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl"
+        className="bg-card/80 backdrop-blur-xl border-t border-border/40 rounded-t-[2rem] px-6 pt-7 pb-[max(2rem,env(safe-area-inset-bottom))] relative z-10 shadow-2xl mt-auto"
       >
         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
 
