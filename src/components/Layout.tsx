@@ -1,7 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Trophy, User, Swords, Settings, MessageCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { motion, AnimatePresence } from "framer-motion";
 
 export function Layout() {
   const location = useLocation();
@@ -53,17 +52,7 @@ export function Layout() {
 
       {/* Content */}
       <main className="flex-1 px-4 pt-4 pb-24 overflow-x-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <Outlet />
       </main>
 
       {/* Floating Bottom Nav */}
@@ -81,11 +70,7 @@ export function Layout() {
                   className="relative flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all"
                 >
                   {isActive && (
-                    <motion.div
-                      layoutId="nav-pill"
-                      className="absolute inset-0 gradient-primary rounded-xl glow-primary"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
+                    <div className="absolute inset-0 gradient-primary rounded-xl shadow-sm" />
                   )}
                   <item.icon
                     className={`relative h-5 w-5 transition-colors ${

@@ -24,6 +24,8 @@ import NotFound from "./pages/NotFound";
 import Premium from "./pages/Premium";
 import Admin from "./pages/Admin";
 import Notes from "./pages/Notes";
+import Lobby from "./pages/Lobby";
+import StudyRoom from "./pages/StudyRoom";
 import ComingSoon from "./components/ComingSoon";
 import { AdminRoute } from "@/components/AdminRoute";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -48,8 +50,8 @@ function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
-        <Route path="/lobby" element={<ComingSoon title="غرف الدراسة" description="غرف الدراسة الجماعية ستكون متاحة قريباً للمذاكرة مع زملائك." />} />
-        <Route path="/room/:id" element={<ComingSoon title="غرف الدراسة" description="غرف الدراسة الجماعية ستكون متاحة قريباً." />} />
+        <Route path="/lobby" element={<Lobby />} />
+        <Route path="/room/:id" element={<StudyRoom />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/start-study" element={<StartStudy />} />

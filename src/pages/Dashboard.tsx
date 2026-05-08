@@ -10,14 +10,13 @@ import {
   ExternalLink, Trophy, Search, Download, History, Flame, TrendingUp, Target, Settings2, X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { getBookFor } from "@/lib/grade-books";
 import { getLevelInfo } from "@/lib/level-utils";
 import { listTargets, getLastBook, setLastBook, setTarget, getTarget, getResume, clearResume } from "@/lib/study-targets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdBanner } from "@/components/AdBanner";
-// (AdBanner already imported above)
+import { StudyRoomsHome } from "@/components/StudyRoomsHome";
 
 interface Sess {
   id?: string;
@@ -131,11 +130,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-4 max-w-lg mx-auto">
       {/* Hero Card */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <div className="relative overflow-hidden rounded-3xl gradient-mesh p-5 text-white shadow-2xl">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-
+      <div>
+        <div className="relative overflow-hidden rounded-3xl gradient-mesh p-5 text-white shadow-lg">
           <div className="relative">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -150,21 +146,20 @@ export default function Dashboard() {
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-14 h-14 rounded-2xl object-cover ring-2 ring-white/40 shadow-lg" />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl font-black ring-2 ring-white/40">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-black ring-2 ring-white/40">
                   {profile.name?.[0] || "؟"}
                 </div>
               )}
             </div>
 
             {!isTeacher && (
-              <div className="bg-white/15 backdrop-blur rounded-2xl p-3 mb-4 border border-white/20">
+              <div className="bg-white/15 rounded-2xl p-3 mb-4 border border-white/20">
                 <div className="flex justify-between text-xs mb-2">
                   <span className="font-medium opacity-90">المستوى {lvl.level} → {lvl.level + 1}</span>
                   <span className="font-black">{profile.total_xp - lvl.xpForCurrent}/{lvl.xpForNext - lvl.xpForCurrent} XP</span>
                 </div>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${lvl.progress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }} className="h-full bg-white rounded-full shadow-lg" />
+                  <div className="h-full bg-white rounded-full shadow-lg" style={{ width: `${lvl.progress}%` }} />
                 </div>
               </div>
             )}
@@ -175,7 +170,7 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -191,7 +186,7 @@ export default function Dashboard() {
               { label: `المستوى`, value: lvl.level, icon: BarChart3, gradient: "from-primary to-secondary" },
             ]
         ).map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06 }}>
+          <div key={stat.label}>
             <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-colors">
               <CardContent className="p-3 text-center">
                 <div className={`w-9 h-9 mx-auto rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-1.5 shadow-md`}>
@@ -201,7 +196,7 @@ export default function Dashboard() {
                 <p className="text-[10px] text-muted-foreground font-medium">{stat.label}</p>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -223,9 +218,11 @@ export default function Dashboard() {
         </div>
       )}
 
+      {!isTeacher && <StudyRoomsHome />}
+
       {/* Weekly Stats - focus only */}
       {!isTeacher && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <div>
           <Card className="border-border/50 overflow-hidden">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
@@ -269,7 +266,7 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Per-subject progress + history */}
@@ -291,7 +288,7 @@ export default function Dashboard() {
           toast.success(`تم إخفاء ${sub} من المتابعة`);
         };
         return (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <div>
           <h2 className="font-black text-sm mb-2 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-md">
               <BarChart3 className="h-4 w-4 text-white" />
@@ -320,8 +317,7 @@ export default function Dashboard() {
                       <span className="text-[10px] font-black text-primary">{pct}%</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full" transition={{ duration: 0.6 }} />
+                      <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span>{fmt(done)} / {fmt(target)} • {rounds} جولة • باقي {fmt(remain)}</span>
@@ -341,13 +337,13 @@ export default function Dashboard() {
             })}
           </div>
           <AdBanner />
-        </motion.div>
+        </div>
         );
       })()}
 
       {/* Books for grade */}
       {!isTeacher && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+        <div>
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-black text-sm flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shadow-md">
@@ -397,8 +393,8 @@ export default function Dashboard() {
                 const t = targets[b.subject];
                 const targetH = t ? Math.round(t.targetMinutes / 60) : null;
                 return (
-                  <motion.div key={b.subject} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}
-                    className="group relative overflow-hidden rounded-2xl p-3 bg-card border border-border/50 hover:border-primary/40 hover:shadow-lg transition-all">
+                  <div key={b.subject}
+                    className="group relative overflow-hidden rounded-2xl p-3 bg-card border border-border/50 hover:border-primary/40 transition-colors">
                     <div className={`absolute inset-0 opacity-10 bg-gradient-to-br ${b.color} group-hover:opacity-20 transition`} />
                     <div className="relative">
                       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${b.color} flex items-center justify-center text-xl shadow-sm mb-2`}>
@@ -423,12 +419,12 @@ export default function Dashboard() {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* Target dialog */}
