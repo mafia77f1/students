@@ -15,14 +15,10 @@ export function AdBanner({ className = "" }: AdBannerProps) {
 
   useEffect(() => {
     if (isPremium) return;
-    const load = () => setCanLoadAd(true);
-    const idleId = "requestIdleCallback" in window
-      ? window.requestIdleCallback(load, { timeout: 3000 })
-      : window.setTimeout(load, 2500);
+    const timerId = globalThis.setTimeout(() => setCanLoadAd(true), 2500);
 
     return () => {
-      if ("cancelIdleCallback" in window && typeof idleId === "number") window.cancelIdleCallback(idleId);
-      else window.clearTimeout(idleId as number);
+      globalThis.clearTimeout(timerId);
     };
   }, [isPremium]);
 
