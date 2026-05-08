@@ -36,39 +36,31 @@ export default function Auth() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* Static Background Blobs - No animation to prevent lag */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/10 blur-3xl pointer-events-none" />
+    /* تم تغيير fixed إلى min-h-screen لضمان ملء الشاشة حتى مع الكيبورد */
+    <div className="min-h-screen w-full flex flex-col bg-background relative overflow-x-hidden">
+      {/* الخلفيات ثابتة في مكانها */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/10 blur-3xl" />
+      </div>
 
-      {/* Hero area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      {/* منطقة المحتوى العلوي */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 relative z-10">
         <motion.img
           src={appIcon}
           alt="طلاب"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-24 h-24 rounded-3xl object-cover mb-4 shadow-xl"
-        />
-        <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-3xl font-black gradient-text mb-1"
-        >
-          طلاب
-        </motion.h1>
-        <p className="text-xs text-muted-foreground">
+          className="w-24 h-24 rounded-3xl object-cover mb-4 shadow-xl"
+        />
+        <h1 className="text-3xl font-black gradient-text mb-1">طلاب</h1>
+        <p className="text-xs text-muted-foreground text-center">
           {isLogin ? "أهلاً بعودتك ✨" : "ابدأ رحلتك الدراسية"}
         </p>
       </div>
 
-      {/* Bottom sheet form - Removed backdrop-blur for performance */}
-      <motion.div
-        initial={{ y: "20%", opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="bg-card border-t border-border/50 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
-      >
+      {/* الفورم (Bottom Sheet) */}
+      <div className="w-full bg-card border-t border-border/50 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] mt-auto">
         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
 
         <h2 className="text-xl font-black mb-1">
@@ -88,6 +80,7 @@ export default function Auth() {
               </div>
             </div>
           )}
+          
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-xs font-bold">البريد الإلكتروني</Label>
             <div className="relative">
@@ -95,6 +88,7 @@ export default function Auth() {
               <Input id="email" type="email" inputMode="email" placeholder="example@mail.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required />
             </div>
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="password" className="text-xs font-bold">كلمة المرور</Label>
             <div className="relative">
@@ -102,6 +96,7 @@ export default function Auth() {
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10 h-12 rounded-xl bg-muted/40 border-border/50" required minLength={6} />
             </div>
           </div>
+
           <Button type="submit" className="w-full h-12 py-6 gradient-primary text-white border-0 rounded-2xl font-black gap-2 mt-2" disabled={loading}>
             {loading ? "جاري التحميل..." : (
               <>
@@ -118,7 +113,7 @@ export default function Auth() {
         >
           {isLogin ? <>ليس لديك حساب؟ <span className="text-primary font-bold">أنشئ حساب</span></> : <>لديك حساب؟ <span className="text-primary font-bold">سجل دخول</span></>}
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 }
