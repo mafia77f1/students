@@ -48,13 +48,13 @@ export default function Dashboard() {
       .select("id,subject,duration_minutes,xp_earned,ended_at,started_at")
       .eq("user_id", profile.id)
       .gte("started_at", sevenDaysAgo.toISOString())
-      .then(({ data }) => setSessions((data as any[]) || []));
+      .then(({ data }) => setSessions((data as Sess[] | null) || []));
     supabase
       .from("study_sessions")
       .select("id,subject,duration_minutes,xp_earned,ended_at,started_at")
       .eq("user_id", profile.id)
       .order("started_at", { ascending: false })
-      .then(({ data }) => setAllSessions((data as any[]) || []));
+      .then(({ data }) => setAllSessions((data as Sess[] | null) || []));
   }, [profile]);
 
   const isTeacher = profile?.role === "teacher";
@@ -271,7 +271,7 @@ export default function Dashboard() {
 
       {/* Per-subject progress + history */}
       {!isTeacher && subjectsList.length > 0 && (() => {
-        const hidden: string[] = (profile as any).hidden_subjects || [];
+        const hidden: string[] = (profile as typeof profile & { hidden_subjects?: string[] }).hidden_subjects || [];
         const visible = subjectsList.filter((sub) => {
           if (hidden.includes(sub)) return false;
           const target = targets[sub]?.targetMinutes || 240;
@@ -282,7 +282,7 @@ export default function Dashboard() {
         const dismissSubject = async (sub: string) => {
           if (!profile) return;
           const next = Array.from(new Set([...hidden, sub]));
-          await supabase.from("profiles").update({ hidden_subjects: next } as any).eq("id", profile.id);
+          await supabase.from("profiles").update({ hidden_subjects: next } as { hidden_subjects: string[] }).eq("id", profile.id);
           clearResume(profile.id, sub);
           await refreshProfile();
           toast.success(`تم إخفاء ${sub} من المتابعة`);
