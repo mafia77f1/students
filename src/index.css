@@ -54,6 +54,7 @@
     --chart-3: 280 85% 65%;
     --chart-4: 0 0% 20%;
     --chart-5: 215 100% 65%;
+    --app-viewport-height: 100dvh;
   }
 
   .dark {
@@ -108,7 +109,11 @@
 @layer base {
   * { @apply border-border; }
 
-  html { direction: rtl; }
+  html {
+    direction: rtl;
+    min-height: 100%;
+    background: hsl(var(--background));
+  }
 
   body {
     @apply bg-background text-foreground;
@@ -118,6 +123,16 @@
       radial-gradient(at 80% 100%, hsl(var(--secondary) / 0.06) 0px, transparent 50%);
     background-attachment: scroll;
     min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: hsl(var(--background));
   }
 
   .dark body {
@@ -195,6 +210,29 @@
 
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .auth-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: var(--app-viewport-height);
+    height: var(--app-viewport-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+    background: hsl(var(--background));
+  }
+
+  .auth-panel {
+    width: min(100%, 28rem);
+    margin: 0 auto;
+    padding-top: clamp(0.25rem, 6vh, 3rem);
+    transition: padding-top 120ms ease;
+  }
+
+  .auth-panel--focused {
+    padding-top: 0;
+  }
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
