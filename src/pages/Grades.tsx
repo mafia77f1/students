@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { BookOpen, Brain, Loader2, GraduationCap, FileText, Award, ArrowRight, Save } from "lucide-react";
+import { BookOpen, Brain, Loader2, GraduationCap, FileText, Award, ArrowRight, Save, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 type ExamType = "ministerial" | "exemption" | "success_test";
