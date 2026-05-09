@@ -21,6 +21,12 @@ const config: CapacitorConfig = {
   //   url: 'https://e7b0be05-d759-40a7-9ff5-711ab7db6f2b.lovableproject.com?forceHideBadge=true',
   //   cleartext: true,
   // },
+  plugins: {
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+  },
 };
 
 export default config;
