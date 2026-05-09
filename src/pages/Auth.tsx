@@ -36,31 +36,30 @@ export default function Auth() {
   };
 
   return (
-    /* تم تغيير fixed إلى min-h-screen لضمان ملء الشاشة حتى مع الكيبورد */
-    <div className="min-h-screen w-full flex flex-col bg-background relative overflow-x-hidden">
-      {/* الخلفيات ثابتة في مكانها */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+    <div className="min-h-screen w-full bg-background relative overflow-x-hidden">
+      {/* الخلفيات داخل التدفق العادي حتى لا تظهر مساحات رمادية عند فتح الكيبورد */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary/10 blur-3xl" />
       </div>
 
       {/* منطقة المحتوى العلوي */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 relative z-10">
+      <div className="flex flex-col items-center justify-center px-6 pt-10 pb-6 relative z-10">
         <motion.img
           src={appIcon}
           alt="طلاب"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="w-24 h-24 rounded-3xl object-cover mb-4 shadow-xl"
+          className="w-20 h-20 rounded-3xl object-cover mb-3 shadow-xl"
         />
-        <h1 className="text-3xl font-black gradient-text mb-1">طلاب</h1>
+        <h1 className="text-2xl font-black gradient-text mb-1">طلاب</h1>
         <p className="text-xs text-muted-foreground text-center">
           {isLogin ? "أهلاً بعودتك ✨" : "ابدأ رحلتك الدراسية"}
         </p>
       </div>
 
-      {/* الفورم (Bottom Sheet) */}
-      <div className="w-full bg-card border-t border-border/50 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] mt-auto">
+      {/* الفورم */}
+      <div className="w-full bg-card border-t border-border/50 rounded-t-[2.5rem] px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
 
         <h2 className="text-xl font-black mb-1">
