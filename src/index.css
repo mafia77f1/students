@@ -54,7 +54,6 @@
     --chart-3: 280 85% 65%;
     --chart-4: 0 0% 20%;
     --chart-5: 215 100% 65%;
-    --app-viewport-height: 100dvh;
   }
 
   .dark {
@@ -127,6 +126,21 @@
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     overscroll-behavior-y: none;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   #root {
@@ -213,14 +227,16 @@
 
   .auth-screen {
     min-height: 100vh;
-    min-height: 100dvh;
-    min-height: var(--app-viewport-height);
-    height: var(--app-viewport-height);
+    min-height: 100svh;
     overflow-y: auto;
     overflow-x: hidden;
     padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
     -webkit-overflow-scrolling: touch;
     background: hsl(var(--background));
+  }
+
+  .keyboard-active .fixed-bottom-nav {
+    display: none;
   }
 
   .auth-panel {
