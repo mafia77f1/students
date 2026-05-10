@@ -56,7 +56,7 @@ export function Layout() {
       </main>
 
       {/* Floating Bottom Nav */}
-      <nav className="fixed bottom-3 left-3 right-3 z-40 max-w-lg mx-auto">
+      <nav className="fixed-bottom-nav fixed bottom-3 left-3 right-3 z-40 max-w-lg mx-auto">
         <div className="glass rounded-2xl shadow-2xl border-primary/10 px-1.5 py-1.5">
           <div className="flex items-center justify-between relative">
             {navItems.map((item) => {
