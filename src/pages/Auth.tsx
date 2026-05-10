@@ -13,7 +13,6 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -45,16 +44,14 @@ export default function Auth() {
 
   return (
     <main className="auth-screen bg-background text-foreground">
-      <section className={`auth-panel ${inputFocused ? "auth-panel--focused" : ""}`}>
+      <section className="auth-panel">
         <div className="flex items-center gap-3 pb-4">
           <img src={appIcon} alt="طلاب" className="h-12 w-12 shrink-0 rounded-2xl object-cover" />
           <div>
             <h1 className="text-2xl font-black gradient-text">طلاب</h1>
-            {!inputFocused && (
-              <p className="text-sm text-muted-foreground">
-                {isLogin ? "أهلاً بعودتك ✨" : "ابدأ رحلتك الدراسية"}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {isLogin ? "أهلاً بعودتك ✨" : "ابدأ رحلتك الدراسية"}
+            </p>
           </div>
         </div>
 
@@ -66,8 +63,6 @@ export default function Auth() {
 
           <form
             onSubmit={handleSubmit}
-            onFocusCapture={() => setInputFocused(true)}
-            onBlurCapture={() => window.setTimeout(() => setInputFocused(false), 120)}
             className="space-y-3"
           >
           {!isLogin && (

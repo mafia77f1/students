@@ -1,21 +1,14 @@
 import { createRoot } from "react-dom/client";
-import { Capacitor } from "@capacitor/core";
-import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import App from "./App.tsx";
 import "./index.css";
 
-const syncViewportHeight = () => {
-  const height = window.visualViewport?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty("--app-viewport-height", `${height}px`);
+const markEditingState = () => {
+  const active = document.activeElement;
+  const isTextField = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
+  document.body.classList.toggle("keyboard-active", isTextField);
 };
 
-syncViewportHeight();
-window.visualViewport?.addEventListener("resize", syncViewportHeight);
-window.visualViewport?.addEventListener("scroll", syncViewportHeight);
-window.addEventListener("resize", syncViewportHeight);
-
-if (Capacitor.isNativePlatform()) {
-  Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => undefined);
-}
+window.addEventListener("focusin", markEditingState);
+window.addEventListener("focusout", () => window.setTimeout(markEditingState, 80));
 
 createRoot(document.getElementById("root")!).render(<App />);
