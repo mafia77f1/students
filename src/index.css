@@ -112,6 +112,7 @@
     direction: rtl;
     min-height: 100%;
     background: hsl(var(--background));
+    color-scheme: light dark;
   }
 
   body {
@@ -126,6 +127,7 @@
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     overscroll-behavior-y: none;
+    caret-color: hsl(var(--primary));
   }
 
   input,
@@ -147,6 +149,16 @@
     min-height: 100vh;
     min-height: 100dvh;
     background: hsl(var(--background));
+  }
+
+  .capacitor-native,
+  .capacitor-native body,
+  .capacitor-native #root {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    background-color: hsl(var(--background));
   }
 
   .dark body {
@@ -235,8 +247,17 @@
     background: hsl(var(--background));
   }
 
+  .capacitor-native .auth-screen {
+    min-height: 100%;
+    padding-bottom: max(8rem, env(safe-area-inset-bottom));
+  }
+
   .keyboard-active .fixed-bottom-nav {
     display: none;
+  }
+
+  .keyboard-active {
+    overscroll-behavior: contain;
   }
 
   .auth-panel {

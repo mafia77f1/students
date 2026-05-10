@@ -59,6 +59,42 @@ jobs:
       - name: Add Android platform
         run: npx cap add android || true
 
+      - name: Fix Android keyboard WebView resize
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          text = manifest.read_text()
+          if 'android:windowSoftInputMode=' not in text:
+              text = text.replace(
+                  '<activity ',
+                  '<activity android:windowSoftInputMode="stateHidden|adjustNothing" ',
+                  1,
+              )
+          else:
+              import re
+              text = re.sub(
+                  r'android:windowSoftInputMode="[^"]*"',
+                  'android:windowSoftInputMode="stateHidden|adjustNothing"',
+                  text,
+                  count=1,
+              )
+          manifest.write_text(text)
+
+          main_activity = Path('android/app/src/main/java/app/lovable/e7b0be05d75940a79ff5711ab7db6f2b/MainActivity.java')
+          if main_activity.exists():
+              source = main_activity.read_text()
+              if 'WindowManager' not in source:
+                  source = source.replace('import com.getcapacitor.BridgeActivity;\n', 'import com.getcapacitor.BridgeActivity;\nimport android.os.Bundle;\nimport android.view.WindowManager;\n')
+              if 'setSoftInputMode' not in source:
+                  source = source.replace(
+                      'public class MainActivity extends BridgeActivity {}',
+                      'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);\n    }\n}',
+                  )
+              main_activity.write_text(source)
+          PY
+
       - name: Generate Android app icons (Capacitor Assets)
         run: |
           mkdir -p assets
