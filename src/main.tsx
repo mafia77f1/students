@@ -2,6 +2,12 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
+const capacitorBridge = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+
+if (capacitorBridge?.isNativePlatform?.()) {
+  document.documentElement.classList.add("capacitor-native");
+}
+
 const markEditingState = () => {
   const active = document.activeElement;
   const isTextField = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
