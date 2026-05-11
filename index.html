@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- التعديل هنا: حذفنا maximum-scale و user-scalable=no لضمان سلاسة التصفح ومنع تعليق الصفحة -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>طلاب - تطبيق المذاكرة الجماعية</title>
     <meta name="description" content="طلاب - تطبيق المذاكرة الجماعية الملعّبة. ذاكر مع أصدقائك وتحدى نفسك!">
 
@@ -18,17 +19,31 @@
     <meta name="apple-mobile-web-app-title" content="طلاب" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    
-    
+    <!-- Open Graph / Meta Tags -->
     <meta property="og:image" content="/app-icon.png">
     <meta property="og:type" content="website" />
     <meta property="og:title" content="طلاب - تطبيق المذاكرة الجماعية">
-  <meta name="twitter:title" content="طلاب - تطبيق المذاكرة الجماعية">
-  <meta property="og:description" content="طلاب - تطبيق المذاكرة الجماعية الملعّبة. ذاكر مع أصدقائك وتحدى نفسك!">
-  <meta name="twitter:description" content="طلاب - تطبيق المذاكرة الجماعية الملعّبة. ذاكر مع أصدقائك وتحدى نفسك!">
-  <meta name="twitter:image" content="/app-icon.png">
-  <meta name="twitter:card" content="summary_large_image">
-</head>
+    <meta name="twitter:title" content="طلاب - تطبيق المذاكرة الجماعية">
+    <meta property="og:description" content="طلاب - تطبيق المذاكرة الجماعية الملعّبة. ذاكر مع أصدقائك وتحدى نفسك!">
+    <meta name="twitter:description" content="طلاب - تطبيق المذاكرة الجماعية الملعّبة. ذاكر مع أصدقائك وتحدى نفسك!">
+    <meta name="twitter:image" content="/app-icon.png">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <style>
+      /* إضافة بسيطة لضمان أن الجسم لا يمنع التمرير برمجياً */
+      body {
+        -webkit-overflow-scrolling: touch;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-h-screen: 100vh;
+      }
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
 
   <body>
     <!-- Google tag (gtag.js) -->
@@ -39,6 +54,7 @@
       gtag('js', new Date());
       gtag('config', 'G-HHFBQ5Z0H9');
     </script>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
