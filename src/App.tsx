@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import Premium from "./pages/Premium";
 import Admin from "./pages/Admin";
 import Notes from "./pages/Notes";
+import Messages from "./pages/Messages";
 import ComingSoon from "./components/ComingSoon";
 import { AdminRoute } from "@/components/AdminRoute";
 import { LoadingScreen } from "@/components/LoadingScreen";
