@@ -24,8 +24,6 @@ import NotFound from "./pages/NotFound";
 import Premium from "./pages/Premium";
 import Admin from "./pages/Admin";
 import Notes from "./pages/Notes";
-import Lobby from "./pages/Lobby";
-import StudyRoom from "./pages/StudyRoom";
 import ComingSoon from "./components/ComingSoon";
 import { AdminRoute } from "@/components/AdminRoute";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -51,15 +49,14 @@ function AppRoutes() {
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
         <Route path="/index" element={<Index />} />
-        <Route path="/lobby" element={<Lobby />} />
-        <Route path="/room/:id" element={<StudyRoom />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/start-study" element={<StartStudy />} />
         <Route path="/study-session/:id" element={<StudySession />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/grades" element={<Grades />} />
-        <Route path="/messages" element={<ComingSoon title="الرسائل" description="نظام المحادثات بين الطلاب والأساتذة جاهز قريباً 💬" />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/messages/:userId" element={<Messages />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/user/:id" element={<UserProfile />} />
         <Route path="/teachers" element={<TeachersList />} />
