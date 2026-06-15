@@ -486,3 +486,114 @@ function SuccessTestView({ subjects, onBack }: { subjects: string[]; onBack: () 
     </div>
   );
 }
+
+// ===================== Success Overall (multi-subject) =====================
+function SuccessOverallView({ subjects, onBack }: { subjects: string[]; onBack: () => void }) {
+  const [rows, setRows] = useState<{ subject: string; earned: string; max: string }[]>(
+    subjects.length ? subjects.map((s) => ({ subject: s, earned: "", max: "100" })) : [{ subject: "", earned: "", max: "100" }]
+  );
+  const [submitted, setSubmitted] = useState(false);
+
+  const validNum = (v: string) => v === "" || /^\d{0,4}(\.\d{0,2})?$/.test(v);
+  const setField = (i: number, key: "subject" | "earned" | "max", v: string) => {
+    if ((key === "earned" || key === "max") && !validNum(v)) return;
+    setRows((p) => p.map((r, idx) => (idx === i ? { ...r, [key]: v } : r)));
+  };
+  const addRow = () => setRows((p) => [...p, { subject: "", earned: "", max: "100" }]);
+  const removeRow = (i: number) => setRows((p) => p.filter((_, idx) => idx !== i));
+
+  const valid = rows
+    .map((r) => ({ name: r.subject.trim(), e: parseFloat(r.earned), m: parseFloat(r.max) }))
+    .filter((r) => r.name && !isNaN(r.e) && !isNaN(r.m) && r.m > 0);
+
+  const totals = valid.reduce(
+    (acc, r) => {
+      const pct = Math.min(100, (r.e / r.m) * 100);
+      acc.sum += pct;
+      acc.count += 1;
+      return acc;
+    },
+    { sum: 0, count: 0 }
+  );
+
+  const finalScore = totals.count > 0 ? totals.sum / totals.count : 0;
+  const passed = finalScore >= 50;
+
+  const reset = () => {
+    setRows(subjects.length ? subjects.map((s) => ({ subject: s, earned: "", max: "100" })) : [{ subject: "", earned: "", max: "100" }]);
+    setSubmitted(false);
+  };
+
+  return (
+    <div className="space-y-4 max-w-lg mx-auto pb-4">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-5 text-white shadow-xl bg-gradient-to-br from-indigo-500 to-purple-500">
+        <button onClick={onBack} className="text-[11px] opacity-80 mb-1 flex items-center gap-1">← رجوع</button>
+        <h1 className="text-xl font-black flex items-center gap-2"><Award className="h-5 w-5" /> اختبار النجاح في المواد</h1>
+        <p className="text-xs opacity-90 mt-1">أدخل درجتك وقيمتها لكل مادة — يحسب المعدل العام من 100.</p>
+      </motion.div>
+
+      <Card className="glass border-0">
+        <CardContent className="pt-4 space-y-3">
+          {rows.map((r, i) => (
+            <div key={i} className="rounded-xl border border-border/60 p-2.5 space-y-2 bg-background/40">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold">المادة {i + 1}</span>
+                {rows.length > 1 && (
+                  <button onClick={() => removeRow(i)} className="text-destructive p-1 hover:bg-destructive/10 rounded-lg">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <Input placeholder="اسم المادة" value={r.subject} onChange={(e) => setField(i, "subject", e.target.value)}
+                className="h-9 rounded-xl font-bold text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground font-bold">درجتك</Label>
+                  <Input inputMode="decimal" placeholder="مثلاً 85" value={r.earned}
+                    onChange={(e) => setField(i, "earned", e.target.value)} className="text-center font-bold rounded-xl h-9" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground font-bold">القيمة الكلية</Label>
+                  <Input inputMode="decimal" placeholder="100" value={r.max}
+                    onChange={(e) => setField(i, "max", e.target.value)} className="text-center font-bold rounded-xl h-9" />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <Button onClick={addRow} variant="outline" className="w-full gap-1 rounded-xl">
+            <Plus className="h-4 w-4" /> إضافة مادة
+          </Button>
+
+          {totals.count > 0 && (
+            <div className="text-[11px] text-center text-muted-foreground">{totals.count} مادة محسوبة</div>
+          )}
+
+          <Button onClick={() => setSubmitted(true)} disabled={totals.count < 1}
+            className="w-full gradient-primary text-white border-0 rounded-xl font-black py-5">
+            احسب المعدل العام 🎯
+          </Button>
+        </CardContent>
+      </Card>
+
+      {submitted && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+          <Card className={`border-0 overflow-hidden ${passed ? "bg-gradient-to-br from-emerald-500 to-teal-500" : "bg-gradient-to-br from-rose-500 to-orange-500"} text-white shadow-2xl`}>
+            <CardContent className="pt-6 pb-6 text-center space-y-3">
+              <div className="text-6xl">{passed ? "🎉" : "💪"}</div>
+              <h2 className="text-3xl font-black">{finalScore.toFixed(1)}/100</h2>
+              <p className="text-sm font-bold opacity-95">معدلك العام في {totals.count} مادة</p>
+              <div className="inline-block px-4 py-2 rounded-full text-sm font-black bg-white/25">
+                {passed ? "✅ ناجح" : "❌ راسب"}
+              </div>
+              <Button onClick={reset} variant="outline" className="bg-white/20 border-white/30 text-white hover:bg-white/30 rounded-xl mt-2">
+                إعادة المحاولة
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+    </div>
+  );
+}
