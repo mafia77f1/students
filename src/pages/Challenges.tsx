@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Swords, Plus, Calendar, Trophy, CheckCircle, XCircle, Target, Flame, Clock, Zap, BarChart3, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const subjects = ["الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "اللغة العربية", "اللغة الإنجليزية", "الإسلامية", "الاجتماعيات"];
 
@@ -44,6 +44,7 @@ interface UserOption { id: string; name: string; }
 export default function Challenges() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,6 +97,22 @@ export default function Challenges() {
   };
 
   useEffect(() => { fetchChallenges(); }, [profile]);
+
+  // Auto-open dialog with pre-filled user when arriving from profile via ?to=
+  useEffect(() => {
+    const to = searchParams.get("to");
+    const name = searchParams.get("name");
+    if (to && profile) {
+      setSelectedUser(to);
+      setSearchUser(name || "");
+      setDialogOpen(true);
+      // clear params so it doesn't reopen on close
+      const next = new URLSearchParams(searchParams);
+      next.delete("to"); next.delete("name");
+      setSearchParams(next, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, searchParams.toString()]);
 
   useEffect(() => {
     if (!profile) return;
