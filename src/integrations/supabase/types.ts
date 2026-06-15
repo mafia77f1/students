@@ -136,6 +136,33 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       note_ratings: {
         Row: {
           comment: string | null
@@ -248,84 +275,6 @@ export type Database = {
           weekly_xp?: number | null
         }
         Relationships: []
-      }
-      room_messages: {
-        Row: {
-          created_at: string | null
-          id: string
-          room_id: string
-          text: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          room_id: string
-          text: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          room_id?: string
-          text?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "room_messages_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "study_rooms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      room_participants: {
-        Row: {
-          id: string
-          joined_at: string | null
-          room_id: string
-          status: string | null
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          joined_at?: string | null
-          room_id: string
-          status?: string | null
-          user_id: string
-        }
-        Update: {
-          id?: string
-          joined_at?: string | null
-          room_id?: string
-          status?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "room_participants_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "study_rooms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       student_grades: {
         Row: {
@@ -503,44 +452,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      study_rooms: {
-        Row: {
-          created_at: string | null
-          creator_id: string
-          id: string
-          is_active: boolean | null
-          max_participants: number | null
-          name: string
-          subject: string
-        }
-        Insert: {
-          created_at?: string | null
-          creator_id: string
-          id?: string
-          is_active?: boolean | null
-          max_participants?: number | null
-          name: string
-          subject: string
-        }
-        Update: {
-          created_at?: string | null
-          creator_id?: string
-          id?: string
-          is_active?: boolean | null
-          max_participants?: number | null
-          name?: string
-          subject?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "study_rooms_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       study_sessions: {
         Row: {
@@ -755,6 +666,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
