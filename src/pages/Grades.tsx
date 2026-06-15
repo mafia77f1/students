@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { BookOpen, Brain, Loader2, GraduationCap, FileText, Award, ArrowRight, Save, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-type ExamType = "ministerial" | "exemption" | "success_test";
+type ExamType = "ministerial" | "exemption" | "success_test" | "success_overall";
 type Term = "first" | "mid" | "second";
 
 const TERM_LABELS: Record<Term, string> = {
@@ -43,10 +43,16 @@ const examInfo = {
     color: "from-amber-500 to-orange-500",
   },
   success_test: {
-    label: "اختبار النجاح",
-    desc: "6 أسئلة لمعرفة معدل نجاحك",
+    label: "اختبار النجاح في المادة",
+    desc: "حدد قيمة كل سؤال — يحسب معدل المادة",
     icon: GraduationCap,
     color: "from-emerald-500 to-teal-500",
+  },
+  success_overall: {
+    label: "اختبار النجاح في المواد",
+    desc: "ادخل معدل كل مادة — يحسب المعدل العام",
+    icon: Award,
+    color: "from-indigo-500 to-purple-500",
   },
 } as const;
 
@@ -175,7 +181,7 @@ export default function Grades() {
         </motion.div>
 
         <div className="grid grid-cols-1 gap-3">
-          {(["ministerial", "exemption", "success_test"] as ExamType[]).map((t, i) => {
+          {(["ministerial", "exemption", "success_test", "success_overall"] as ExamType[]).map((t, i) => {
             const info = examInfo[t];
             const Icon = info.icon;
             const count = grades.filter((g) => g.exam_type === t).length;
@@ -233,6 +239,9 @@ export default function Grades() {
   // ===== Success Test special view =====
   if (activeExam === "success_test") {
     return <SuccessTestView subjects={userSubjects} onBack={() => setActiveExam(null)} />;
+  }
+  if (activeExam === "success_overall") {
+    return <SuccessOverallView subjects={userSubjects} onBack={() => setActiveExam(null)} />;
   }
 
   // ===== Exam detail view: per-subject 3-term entry =====
